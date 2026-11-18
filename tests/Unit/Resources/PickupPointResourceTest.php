@@ -110,6 +110,15 @@ final class PickupPointResourceTest extends TestCase
         self::assertNull($client->pickupPoints()->get('FAN0033'));
     }
 
+    public function testGetMatchesAnIntegerId(): void
+    {
+        [$client] = TestClientFactory::create(
+            static fn(): ResponseInterface => Fixture::ok([self::pointPayload('12345')]),
+        );
+
+        self::assertSame('12345', $client->pickupPoints()->get('12345')?->id);
+    }
+
     public function testGetReturnsNullOnEmptyList(): void
     {
         [$client] = TestClientFactory::create(

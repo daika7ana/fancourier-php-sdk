@@ -6,6 +6,7 @@ namespace Daika7ana\FanCourier\Auth;
 
 use Daika7ana\FanCourier\Exceptions\AuthenticationException;
 use DateTimeImmutable;
+use DateTimeZone;
 use Exception;
 
 final readonly class Token
@@ -82,7 +83,9 @@ final readonly class Token
         }
 
         try {
-            return new DateTimeImmutable($value);
+            // FAN sends local Romanian time without an offset; an unqualified parse
+            // would land hours off on a UTC server.
+            return new DateTimeImmutable($value, new DateTimeZone('Europe/Bucharest'));
         } catch (Exception) {
             // Corrupted cache data: treat as already expired so a fresh token is requested.
             return new DateTimeImmutable();

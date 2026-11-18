@@ -7,6 +7,7 @@ namespace Daika7ana\FanCourier\Tests\Unit\Auth;
 use Daika7ana\FanCourier\Auth\Token;
 use Daika7ana\FanCourier\Exceptions\AuthenticationException;
 use DateTimeImmutable;
+use DateTimeZone;
 use PHPUnit\Framework\TestCase;
 
 final class TokenTest extends TestCase
@@ -18,6 +19,14 @@ final class TokenTest extends TestCase
         self::assertSame('abc', $token->accessToken);
         self::assertSame('2030-06-14 06:00:55', $token->expiresAt?->format('Y-m-d H:i:s'));
         self::assertFalse($token->isExpired());
+    }
+
+    public function testExpiresAtIsReadAsRomanianLocalTime(): void
+    {
+        // FAN sends "2026-11-19 14:40:03" with no offset; November is UTC+2.
+        $token = Token::fromResponse(['token' => 'abc', 'expiresAt' => '2026-11-19 14:40:03']);
+
+        self::assertSame('2026-11-19T12:40:03+00:00', $token->expiresAt?->setTimezone(new DateTimeZone('UTC'))->format(DATE_ATOM));
     }
 
     public function testTokenExpiringWithinAMinuteIsExpired(): void

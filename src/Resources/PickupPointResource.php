@@ -52,7 +52,7 @@ final class PickupPointResource
         );
 
         return $this->mapItems($payload)
-            ->filter(static fn(PickupPoint $point): bool => $point->id === $id)
+            ->filter(static fn(PickupPoint $point): bool => (string) $point->id === $id)
             ->first();
     }
 

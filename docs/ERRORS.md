@@ -42,7 +42,7 @@ try {
 | --- | --- |
 | `{"status":"fail","message":"..."}` with HTTP 200 | `ApiException` |
 | 4xx with `{"status":"fail","message":"..."}` (e.g. deleting an archived order → 403) | `ApiException` |
-| HTTP 401/403 without a failure envelope, after the automatic retry | `UnexpectedStatusException` |
+| HTTP 401, or 403 without a failure envelope, after the automatic retry | `UnexpectedStatusException` |
 | HTTP 422 with `message` + `errors` | `ValidationException` |
 | Any other non-2xx | `UnexpectedStatusException` |
 | Invalid JSON body | `UnexpectedStatusException` |

@@ -27,16 +27,17 @@ in again later without help.
 
 `Client::send()` handles expiry for you:
 
-1. If no token is stored and credentials are configured, it logs in before the
-   first request.
-2. If the stored token is expired (with a 60 second safety margin), it logs in
+1. If the stored token is expired (with a 60 second safety margin), it logs in
    again before sending.
-3. If the API still answers `401` or `403`, it logs in once and retries the
-   request.
+2. If the API answers `401`, it logs in once and retries the request.
+3. If the API answers `403` with a `status:fail` body — a business refusal such
+   as deleting an archived order — it does not retry. FAN also uses `403` for a
+   dead token, so a `403` that is not a failure envelope is retried once.
 
-All three paths need `username` + `password` in the config. Without them the
-request is sent with whatever token is stored — or with none — and a rejected
-token surfaces as `UnexpectedStatusException`.
+Every path needs `username` + `password` in the config. Without them the request
+is sent with whatever token is stored — or with none — and a rejected token
+surfaces as `UnexpectedStatusException`. Public endpoints (locations, pickup
+points, branches) need no token, so a wrong password does not break them.
 
 If the login itself fails, the SDK throws `AuthenticationException`.
 

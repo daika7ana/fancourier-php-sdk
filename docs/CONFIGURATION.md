@@ -10,7 +10,7 @@
 | `username` | `''` | Login used for automatic re-authentication |
 | `password` | `''` | Login used for automatic re-authentication |
 | `language` | `'ro'` | `language` query parameter for labels, events and tracking |
-| `timeout` | `null` | Default HTTP timeout in seconds |
+| `timeout` | `30.0` | HTTP timeout in seconds for every request |
 
 ```php
 use Daika7ana\FanCourier\Config\ClientConfig;
@@ -50,9 +50,10 @@ Request DTOs do not carry a `clientId`: the client injects its own id, so one
 
 ## Timeouts
 
-`timeout` sets the timeout in seconds, applied to every request
-the client makes, including the login call. Leave it `null` to use the HTTP
-client's own default.
+`timeout` sets the timeout in seconds, applied to every request the client
+makes, including the login call. The default is 30 seconds, so a stalled
+connection cannot park a PHP worker forever. Pass `null` to fall back to the
+HTTP client's own default (Guzzle: no timeout). `0` disables the cURL timeout.
 
 ```php
 $client = Client::create(config: new ClientConfig(clientId: 7032158, timeout: 5.0));

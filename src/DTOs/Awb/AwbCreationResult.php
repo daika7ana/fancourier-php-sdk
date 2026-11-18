@@ -8,8 +8,11 @@ use Daika7ana\FanCourier\Support\JsonHelper;
 
 final readonly class AwbCreationResult
 {
+    /**
+     * @param array<string, mixed>|string|null $errors
+     */
     public function __construct(
-        public int|string $awbNumber,
+        public int|string|null $awbNumber,
         public ?float $tariff = null,
         public ?float $vat = null,
         public int $packages = 0,
@@ -19,7 +22,7 @@ final readonly class AwbCreationResult
         public int|string|null $pickUpPointId = null,
         public ?string $visualCode = null,
         public ?int $estimatedDeliveryTime = null,
-        public ?string $errors = null,
+        public array|string|null $errors = null,
     ) {}
 
     /**
@@ -28,7 +31,7 @@ final readonly class AwbCreationResult
     public static function fromArray(array $data): self
     {
         return new self(
-            awbNumber: JsonHelper::id($data['awbNumber'] ?? 0) ?? 0,
+            awbNumber: JsonHelper::id($data['awbNumber'] ?? null),
             tariff: is_numeric($data['tariff'] ?? null) ? (float) $data['tariff'] : null,
             vat: is_numeric($data['vat'] ?? null) ? (float) $data['vat'] : null,
             packages: (int) ($data['packages'] ?? 0),
@@ -38,7 +41,9 @@ final readonly class AwbCreationResult
             pickUpPointId: JsonHelper::id($data['pickUpPointId'] ?? null),
             visualCode: self::string($data['visualCode'] ?? null),
             estimatedDeliveryTime: is_numeric($data['estimatedDeliveryTime'] ?? null) ? (int) $data['estimatedDeliveryTime'] : null,
-            errors: self::string($data['errors'] ?? null),
+            errors: is_array($data['errors'] ?? null)
+                ? $data['errors']
+                : self::string($data['errors'] ?? null),
         );
     }
 

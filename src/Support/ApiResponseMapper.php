@@ -91,6 +91,11 @@ final class ApiResponseMapper
             throw new ApiException($message, $payload);
         }
 
+        // contents() consumed the stream; callers may copy it themselves.
+        if ($document->stream->isSeekable()) {
+            $document->stream->rewind();
+        }
+
         return $document;
     }
 

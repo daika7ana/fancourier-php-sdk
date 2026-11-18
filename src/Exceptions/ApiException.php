@@ -7,8 +7,9 @@ namespace Daika7ana\FanCourier\Exceptions;
 use Throwable;
 
 /**
- * FAN Courier answers HTTP 200 with `{"status":"fail","message":"..."}` for
- * business errors; those are surfaced as this exception.
+ * FAN Courier answers `{"status":"fail","message":"..."}` for business errors,
+ * usually with HTTP 200 but sometimes with 4xx (deleting an archived order is
+ * 403); those are surfaced as this exception.
  */
 class ApiException extends FanCourierException
 {

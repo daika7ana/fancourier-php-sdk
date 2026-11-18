@@ -171,6 +171,7 @@ final class AwbResourceTest extends TestCase
 
         self::assertSame('application/pdf', $document->contentType);
         self::assertSame('%PDF-1.4 fake', $document->contents());
+        self::assertSame('%PDF-1.4 fake', $document->stream->getContents());
         self::assertSame('labels.pdf', $document->filename());
     }
 

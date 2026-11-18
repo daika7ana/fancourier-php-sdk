@@ -45,9 +45,11 @@ composer test -- --filter=AwbResourceTest
 - `ClientConfig::BASE_URL_PRODUCTION` is `https://api.fancourier.ro` with no
   trailing `/api`, so resource paths start at `/reports/...` or `/awb`.
 - Auth lives in `src/Auth/`. The API issues a 24h Bearer token via
-  `POST /login`. `Client::send()` logs in when no token is stored, refreshes an
-  expired token, and retries a 401/403 once — all only when username/password
-  are configured. The 60s expiry skew in `Token::isExpired()` is deliberate and
+  `POST /login`. `Client::send()` refreshes an expired token and retries a
+  rejected request once (`401` always, `403` only without a `status:fail`
+  body — business 403s must not be replayed) — all only when username/password
+  are configured. There is no eager login: public endpoints are sent
+  anonymously. The 60s expiry skew in `Token::isExpired()` is deliberate and
   covered in `TokenTest` / `ClientTest` — read those before touching `send()`.
 - The client's configured id is the only `clientId` source: request DTOs do not
   accept one, and resources overwrite `clientId` even in raw-array requests.
@@ -63,8 +65,10 @@ composer test -- --filter=AwbResourceTest
   `decodeJson()` takes an int or a list of accepted statuses: `POST /order`
   answers 201.
   Binary endpoints (labels, confirmations) return `DTOs/Common/Document` via
-  `ApiResponseMapper::document()`, which still detects a JSON fail envelope.
-  Do not send them through `decodeJson()`.
+  `ApiResponseMapper::document()`, which still detects a JSON fail envelope and
+  rewinds the stream after probing it. Do not send them through `decodeJson()`.
+- `ClientConfig::$timeout` defaults to 30 seconds on purpose: `null` means the
+  HTTP client's own default, which for Guzzle is no timeout at all.
 - `docs/RO_FANCourier_API_090126.pdf` is the authoritative endpoint spec. There
   is no text extraction in the repo; read the PDF when a path, parameter, or
   payload shape is in doubt.

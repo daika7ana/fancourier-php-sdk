@@ -129,7 +129,7 @@ final class ClientTest extends TestCase
         self::assertCount(3, $calls);
     }
 
-    public function testConfiguredCredentialsLogInOnFirstRequest(): void
+    public function testConfiguredCredentialsLogInAfterA401(): void
     {
         $calls = [];
         $config = new ClientConfig(clientId: '7032158', username: 'test-user', password: 'test-pass');
@@ -137,17 +137,57 @@ final class ClientTest extends TestCase
         [$client, $httpClient] = TestClientFactory::create(function (RequestInterface $request) use (&$calls) {
             $calls[] = (string) $request->getUri();
 
-            return str_contains((string) $request->getUri(), '/login')
-                ? Fixture::ok(['token' => 'fresh', 'expiresAt' => '+1 day'])
-                : Fixture::ok([]);
+            if (str_contains((string) $request->getUri(), '/login')) {
+                return Fixture::ok(['token' => 'fresh', 'expiresAt' => '+1 day']);
+            }
+
+            return $request->getHeaderLine('Authorization') === 'Bearer fresh'
+                ? Fixture::ok([])
+                : Fixture::raw('{"status":"fail","message":"Unauthenticated."}', 401);
         }, $config);
 
         $response = $client->send($client->createRequest('GET', '/reports/services'));
 
         self::assertSame(200, $response->getStatusCode());
-        self::assertCount(2, $calls);
-        self::assertStringContainsString('/login?username=test-user&password=test-pass', $calls[0]);
+        self::assertCount(3, $calls);
+        self::assertStringContainsString('/login?username=test-user&password=test-pass', $calls[1]);
         self::assertSame('Bearer fresh', $httpClient->lastRequest?->getHeaderLine('Authorization'));
+    }
+
+    public function testPublicEndpointIsSentWithoutLoggingIn(): void
+    {
+        $calls = [];
+        $config = new ClientConfig(clientId: '7032158', username: 'wrong', password: 'wrong');
+
+        [$client] = TestClientFactory::create(function (RequestInterface $request) use (&$calls) {
+            $calls[] = (string) $request->getUri();
+
+            return Fixture::ok([['id' => 1, 'name' => 'Constanta']]);
+        }, $config);
+
+        $client->locations()->counties();
+
+        self::assertCount(1, $calls);
+        self::assertStringNotContainsString('/login', $calls[0]);
+    }
+
+    public function testBusiness403IsNotRetried(): void
+    {
+        $calls = [];
+        $config = new ClientConfig(clientId: '7032158', username: 'test-user', password: 'test-pass');
+
+        [$client] = TestClientFactory::create(function (RequestInterface $request) use (&$calls) {
+            $calls[] = (string) $request->getUri();
+
+            return Fixture::json(['status' => 'fail', 'message' => 'This order was already deleted'], 403);
+        }, $config);
+
+        $client->setToken(new Token('valid'));
+
+        $response = $client->send($client->createRequest('DELETE', '/order'));
+
+        self::assertSame(403, $response->getStatusCode());
+        self::assertCount(1, $calls);
     }
 
     public function testRejectedTokenIsRetriedOnlyOnce(): void

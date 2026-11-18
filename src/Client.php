@@ -22,6 +22,7 @@ use Daika7ana\FanCourier\Resources\PickupPointResource;
 use Daika7ana\FanCourier\Resources\ReportResource;
 use Daika7ana\FanCourier\Resources\ServiceResource;
 use Daika7ana\FanCourier\Support\JsonHelper;
+use JsonException;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -101,7 +102,7 @@ class Client
     public function clientId(): int|string
     {
         if ($this->config->clientId === null || $this->config->clientId === '') {
-            throw new ValidationException([], 'No clientId configured. Pass it to ClientConfig or call authenticate() first.');
+            throw new ValidationException([], 'No clientId configured. Pass it to ClientConfig.');
         }
 
         return $this->config->clientId;
@@ -152,10 +153,6 @@ class Client
     {
         $token = $this->currentToken();
 
-        if ($token === null && $this->canReauthenticate()) {
-            $token = $this->reauthenticate();
-        }
-
         if ($token?->isExpired() === true && $this->canReauthenticate()) {
             $token = $this->reauthenticate();
         }
@@ -163,7 +160,7 @@ class Client
         $request = $this->applyToken($request, $token);
         $response = $this->httpClient->sendRequest($request, $this->config->timeout);
 
-        if (in_array($response->getStatusCode(), [401, 403], true) && $this->canReauthenticate()) {
+        if ($this->authWasRejected($response) && $this->canReauthenticate()) {
             $request = $this->applyToken($request, $this->reauthenticate());
             $response = $this->httpClient->sendRequest($request, $this->config->timeout);
         }
@@ -260,6 +257,37 @@ class Client
         return $request
             ->withoutHeader('Authorization')
             ->withHeader('Authorization', sprintf('%s %s', $token->tokenType, $token->accessToken));
+    }
+
+    /**
+     * A 401 always means "log in again". A 403 usually does not: FAN uses it for
+     * business refusals with a `status:fail` body, which must reach the caller
+     * instead of being replayed as a second write.
+     */
+    private function authWasRejected(ResponseInterface $response): bool
+    {
+        $statusCode = $response->getStatusCode();
+
+        if ($statusCode === 401) {
+            return true;
+        }
+
+        if ($statusCode !== 403) {
+            return false;
+        }
+
+        $body = (string) $response->getBody();
+
+        // shortcut: assumes a seekable body (Guzzle is); a non-seekable stream loses the 403 body.
+        if ($response->getBody()->isSeekable()) {
+            $response->getBody()->rewind();
+        }
+
+        try {
+            return (JsonHelper::decode($body)['status'] ?? null) === 'success';
+        } catch (JsonException) {
+            return true;
+        }
     }
 
     private function currentToken(): ?Token

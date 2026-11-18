@@ -53,7 +53,7 @@ not carry one. The result is a list because one request may create several AWBs:
 ```php
 $result = $client->awb()->createInternal($request);
 
-$result->first()?->awbNumber;   // int|string
+$result->first()?->awbNumber;   // int|string|null
 $result->results;               // list<AwbCreationResult>
 $result->rawData;               // decoded response
 ```

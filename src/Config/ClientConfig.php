@@ -14,7 +14,7 @@ final readonly class ClientConfig
         public string $username = '',
         public string $password = '',
         public string $language = 'ro',
-        public ?float $timeout = null,
+        public ?float $timeout = 30.0,
     ) {}
 
     public static function fromEnvironment(): self
@@ -30,7 +30,7 @@ final readonly class ClientConfig
             username: (string) (getenv('FANCOURIER_USERNAME') ?: ''),
             password: (string) (getenv('FANCOURIER_PASSWORD') ?: ''),
             language: is_string($language) && $language !== '' ? $language : 'ro',
-            timeout: is_string($timeout) && is_numeric($timeout) ? (float) $timeout : null,
+            timeout: is_string($timeout) && is_numeric($timeout) ? (float) $timeout : 30.0,
         );
     }
 }

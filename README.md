@@ -142,8 +142,9 @@ $client->authenticate(username: 'your-username', password: 'your-password');
 The API returns a Bearer token valid for 24 hours. The SDK stores it in memory
 and sends it on every request. When `username` and `password` are configured it
 also re-authenticates automatically when the token expires (60 second safety
-margin) or when the API answers 401/403; without them a rejected token surfaces
-as `UnexpectedStatusException`.
+margin) or when the API answers 401, and retries a 403 only when it is not a
+business failure; without credentials a rejected token surfaces as
+`UnexpectedStatusException`.
 
 Persist and restore a token yourself:
 
