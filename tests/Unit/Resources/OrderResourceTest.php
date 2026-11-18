@@ -52,6 +52,24 @@ final class OrderResourceTest extends TestCase
         self::assertArrayNotHasKey('recipient', $body);
     }
 
+    public function testCreateAccepts201Created(): void
+    {
+        [$client] = TestClientFactory::create(
+            static fn() => Fixture::json(['status' => 'success', 'data' => ['id' => 27018504]], 201),
+        );
+
+        $result = $client->orders()->create(new OrderRequest(
+            info: new OrderInfo(
+                packages: new Packages(parcel: 2, envelope: 0),
+                weight: 3.5,
+                dimensions: new Dimensions(length: 20, width: 20, height: 20),
+                orderType: OrderType::Standard,
+            ),
+        ));
+
+        self::assertSame(27018504, $result->id);
+    }
+
     public function testDeleteSendsClientIdAndIdQuery(): void
     {
         [$client, $httpClient] = TestClientFactory::create(

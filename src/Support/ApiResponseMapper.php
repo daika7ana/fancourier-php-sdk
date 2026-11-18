@@ -14,13 +14,14 @@ use Psr\Http\Message\ResponseInterface;
 final class ApiResponseMapper
 {
     /**
+     * @param int|list<int> $expectedStatus
      * @return array<string, mixed>
      *
      * @throws ApiException
      * @throws UnexpectedStatusException
      * @throws ValidationException
      */
-    public static function decodeJson(ResponseInterface $response, int $expectedStatus = 200): array
+    public static function decodeJson(ResponseInterface $response, int|array $expectedStatus = 200): array
     {
         self::assertStatus($response, $expectedStatus);
 
@@ -41,11 +42,13 @@ final class ApiResponseMapper
     /**
      * Decode the response and return its `data` member.
      *
+     * @param int|list<int> $expectedStatus
+     *
      * @throws ApiException
      * @throws UnexpectedStatusException
      * @throws ValidationException
      */
-    public static function data(ResponseInterface $response, int $expectedStatus = 200): mixed
+    public static function data(ResponseInterface $response, int|array $expectedStatus = 200): mixed
     {
         return self::decodeJson($response, $expectedStatus)['data'] ?? null;
     }
@@ -104,10 +107,12 @@ final class ApiResponseMapper
     }
 
     /**
+     * @param int|list<int> $expectedStatus
+     *
      * @throws UnexpectedStatusException
      * @throws ValidationException
      */
-    public static function assertStatus(ResponseInterface $response, int $expectedStatus): void
+    public static function assertStatus(ResponseInterface $response, int|array $expectedStatus): void
     {
         $statusCode = $response->getStatusCode();
 
@@ -121,9 +126,35 @@ final class ApiResponseMapper
             );
         }
 
-        if ($statusCode !== $expectedStatus) {
+        if (!in_array($statusCode, (array) $expectedStatus, true)) {
+            // A rejected business call (e.g. DELETE /order on an archived order)
+            // arrives as 4xx with the same failure envelope as a 200 failure.
+            $failure = self::failureEnvelope($response);
+
+            if ($failure !== null) {
+                throw new ApiException(self::failureMessage($failure), $failure);
+            }
+
             throw new UnexpectedStatusException($response);
         }
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private static function failureEnvelope(ResponseInterface $response): ?array
+    {
+        if (!str_contains($response->getHeaderLine('Content-Type'), 'json')) {
+            return null;
+        }
+
+        try {
+            $payload = JsonHelper::decode((string) $response->getBody());
+        } catch (JsonException) {
+            return null;
+        }
+
+        return ($payload['status'] ?? null) === 'fail' ? $payload : null;
     }
 
     /**

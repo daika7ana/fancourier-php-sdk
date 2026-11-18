@@ -111,7 +111,7 @@ contact and address details.
 
 | Method | Endpoint | Returns |
 | --- | --- | --- |
-| `create(OrderRequest\|array)` | `POST /order` | `DTOs\Order\OrderResult` |
+| `create(OrderRequest\|array)` | `POST /order` (answers 201) | `DTOs\Order\OrderResult` |
 | `delete(int\|string $id)` | `DELETE /order` | `DTOs\Common\OperationResult` |
 | `report(string $date, ?page, ?perPage)` | `GET /reports/orders` | `PaginatedResult<DTOs\Order\OrderSummary>` |
 | `events(?string $language)` | `GET /reports/order-events` | `Collection<int, DTOs\Order\OrderEvent>` |

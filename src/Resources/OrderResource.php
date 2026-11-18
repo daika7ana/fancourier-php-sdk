@@ -38,7 +38,8 @@ final class OrderResource
             $body,
         );
 
-        return OrderResult::fromArray(ApiResponseMapper::decodeJson($this->client->send($httpRequest)));
+        // POST /order answers 201 Created; other accounts/versions may still answer 200.
+        return OrderResult::fromArray(ApiResponseMapper::decodeJson($this->client->send($httpRequest), [200, 201]));
     }
 
     /**

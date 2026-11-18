@@ -56,9 +56,12 @@ composer test -- --filter=AwbResourceTest
   lists become `key[]=`, bools `1`/`0`, nulls are dropped. Tariff resources
   bypass it with flat `info[service]` keys because the API documents a GET with
   a nested body.
-- Business failures arrive as HTTP 200 `{"status":"fail","message":...}` and are
-  converted to `ApiException` by `ApiResponseMapper::decodeJson()`; non-200 is
+- Business failures arrive as `{"status":"fail","message":...}` — usually HTTP
+  200, but 4xx too (deleting an archived order answers 403) — and are converted
+  to `ApiException` by `ApiResponseMapper::decodeJson()`; any other non-2xx is
   `UnexpectedStatusException`; a Laravel 422 becomes `ValidationException`.
+  `decodeJson()` takes an int or a list of accepted statuses: `POST /order`
+  answers 201.
   Binary endpoints (labels, confirmations) return `DTOs/Common/Document` via
   `ApiResponseMapper::document()`, which still detects a JSON fail envelope.
   Do not send them through `decodeJson()`.

@@ -28,6 +28,18 @@ final class ApiResponseMapperTest extends TestCase
         ApiResponseMapper::decodeJson(Fixture::fail('AWB already deleted'));
     }
 
+    public function test4xxFailureEnvelopeBecomesApiException(): void
+    {
+        $response = Fixture::json(['status' => 'fail', 'message' => 'This order was already deleted'], 403);
+
+        try {
+            ApiResponseMapper::decodeJson($response);
+            self::fail('Expected ApiException.');
+        } catch (ApiException $e) {
+            self::assertSame('This order was already deleted', $e->getMessage());
+        }
+    }
+
     public function testNon200StatusBecomesUnexpectedStatusException(): void
     {
         $this->expectException(UnexpectedStatusException::class);

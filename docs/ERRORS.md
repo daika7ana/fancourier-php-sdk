@@ -2,7 +2,7 @@
 
 ```
 FanCourierException
-├── ApiException                 HTTP 200 + {"status":"fail","message":...}
+├── ApiException                 {"status":"fail","message":...}, any HTTP status
 ├── AuthenticationException      login rejected or token unusable
 ├── ValidationException          HTTP 422, carries $errors
 ├── UnexpectedStatusException    any other non-2xx, carries the response
@@ -41,7 +41,8 @@ try {
 | Situation | Exception |
 | --- | --- |
 | `{"status":"fail","message":"..."}` with HTTP 200 | `ApiException` |
-| HTTP 401/403 after the automatic retry | `UnexpectedStatusException` |
+| 4xx with `{"status":"fail","message":"..."}` (e.g. deleting an archived order → 403) | `ApiException` |
+| HTTP 401/403 without a failure envelope, after the automatic retry | `UnexpectedStatusException` |
 | HTTP 422 with `message` + `errors` | `ValidationException` |
 | Any other non-2xx | `UnexpectedStatusException` |
 | Invalid JSON body | `UnexpectedStatusException` |
