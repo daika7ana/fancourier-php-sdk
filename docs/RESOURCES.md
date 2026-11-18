@@ -14,7 +14,12 @@ shape; every other method takes plain arguments. Responses are always typed DTOs
 `map()`, `pluck()`, …); `PaginatedResult` exposes `items`, `perPage`,
 `currentPage` and `total`.
 
-Endpoint reference: [RO_FANCourier_API_090126.pdf](RO_Fancourier_API_090126.pdf).
+Endpoint reference: [RO_FANCourier_API_090126.pdf](RO_FANCourier_API_090126.pdf).
+
+> The PDF is FAN Courier's document, included unmodified for reference and not
+> covered by this project's license. Credentials in its examples belong to FAN
+> Courier, not to this SDK; they grant no access and are not authorized for use
+> here. See the notice in the README.
 
 ## services()
 

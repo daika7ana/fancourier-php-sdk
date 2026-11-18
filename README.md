@@ -212,6 +212,17 @@ See [docs/TESTING.md](docs/TESTING.md) for the fake HTTP client and fixtures.
 - [Errors](docs/ERRORS.md)
 - [Testing](docs/TESTING.md)
 
+## Third-party material
+
+`docs/RO_FANCourier_API_090126.pdf` is FAN Courier's own API documentation,
+included unmodified as a reference. It is not covered by this project's
+license: FAN Courier owns the document, its content, and the sample credentials
+in its examples. Those credentials come from FAN Courier, not from this
+project. They do not grant API access, and nothing here authorizes their use —
+use them only if you are entitled to, and only against systems you are
+authorized to test. This project is not affiliated with or endorsed by FAN
+Courier.
+
 ## License
 
 GPL-3.0-or-later. See [LICENSE](LICENSE).

@@ -62,7 +62,7 @@ composer test -- --filter=AwbResourceTest
   Binary endpoints (labels, confirmations) return `DTOs/Common/Document` via
   `ApiResponseMapper::document()`, which still detects a JSON fail envelope.
   Do not send them through `decodeJson()`.
-- `docs/RO_Fancourier_API_090126.pdf` is the authoritative endpoint spec. There
+- `docs/RO_FANCourier_API_090126.pdf` is the authoritative endpoint spec. There
   is no text extraction in the repo; read the PDF when a path, parameter, or
   payload shape is in doubt.
 
