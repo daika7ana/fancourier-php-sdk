@@ -79,8 +79,11 @@ final class ReportResourceTest extends TestCase
     public function testAwbTrackingMapsUppercaseOtdAndConfirmation(): void
     {
         [$client, $httpClient] = TestClientFactory::create(static fn() => Fixture::ok([[
-            'content' => 'test',
+            'content' => null,
             'awbNumber' => '2078300120037',
+            'message' => 'The AWB has been registered by sender',
+            'serviceId' => 1,
+            'optionCodes' => ['X'],
             'date' => '2024-03-27 00:00:00',
             'paymentDate' => null,
             'returnAwbNumber' => null,
@@ -105,6 +108,9 @@ final class ReportResourceTest extends TestCase
         self::assertSame('24H', $entry->otd);
         self::assertSame('test', $entry->confirmation?->name);
         self::assertSame('2078300120037', $entry->awbNumber);
+        self::assertSame('The AWB has been registered by sender', $entry->message);
+        self::assertSame(1, $entry->serviceId);
+        self::assertSame(['X'], $entry->optionCodes);
         self::assertInstanceOf(AwbEvent::class, $entry->events[0]);
         self::assertSame('H4', $entry->events[0]->id);
         self::assertSame('Bucuresti', $entry->events[0]->location);
@@ -153,6 +159,18 @@ final class ReportResourceTest extends TestCase
         self::assertSame('Adjud', $transfer->recipientLocality);
         self::assertSame('Sender SRL', $transfer->senderName);
         self::assertSame('Ion Popescu', $transfer->senderContactPerson);
+    }
+
+    public function testConfirmationsWithJsonMessageThrowApiException(): void
+    {
+        [$client] = TestClientFactory::create(
+            static fn() => Fixture::ok('Pentru AWB-urile introduse nu exista scanari in sistemul nostru'),
+        );
+
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage('nu exista scanari');
+
+        $client->reports()->confirmations(['2078300120037']);
     }
 
     public function testConfirmationsReturnZipDocument(): void

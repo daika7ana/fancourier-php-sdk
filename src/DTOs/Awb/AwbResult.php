@@ -8,7 +8,7 @@ final readonly class AwbResult
 {
     /**
      * @param list<AwbCreationResult> $results
-     * @param array<string, mixed> $rawData
+     * @param array<array-key, mixed> $rawData
      */
     public function __construct(
         public array $results,
@@ -16,12 +16,13 @@ final readonly class AwbResult
     ) {}
 
     /**
-     * @param array<string, mixed> $data
+     * @param array<array-key, mixed> $data
      */
     public static function fromArray(array $data): self
     {
         $results = [];
-        $items = $data['response'] ?? $data['data'] ?? [];
+        // /intern-awb wraps the list in `response`; /extern-awb answers with a bare list.
+        $items = array_is_list($data) ? $data : ($data['response'] ?? $data['data'] ?? []);
 
         foreach (is_array($items) ? $items : [] as $item) {
             if (is_array($item)) {

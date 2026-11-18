@@ -24,6 +24,10 @@ final readonly class AwbTracking
         public ?Confirmation $confirmation,
         public ?string $otd,
         public array $events,
+        public ?string $message = null,
+        public int|string|null $serviceId = null,
+        /** @var list<string> */
+        public array $optionCodes = [],
     ) {}
 
     /**
@@ -48,6 +52,12 @@ final readonly class AwbTracking
                 static fn(array $event): AwbEvent => AwbEvent::fromArray($event),
                 ApiResponseMapper::listOfArrays($data['events'] ?? null),
             ),
+            message: self::string($data['message'] ?? null),
+            serviceId: JsonHelper::id($data['serviceId'] ?? null),
+            optionCodes: array_values(array_filter(
+                is_array($data['optionCodes'] ?? null) ? $data['optionCodes'] : [],
+                static fn(mixed $code): bool => is_string($code),
+            )),
         );
     }
 

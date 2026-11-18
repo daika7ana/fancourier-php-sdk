@@ -135,7 +135,7 @@ echo $order->id;
 | `awbEvents(?string $language)` | `GET /reports/awb-events` | `Collection<int, DTOs\Report\AwbEvent>` |
 | `trackAwbs(array $awbs, ?string $language)` | `GET /reports/awb/tracking` | `Collection<int, DTOs\Report\AwbTracking>` |
 | `bankTransfers(string $date, ?page, ?perPage)` | `GET /reports/bank-transfers` | `PaginatedResult<DTOs\Report\BankTransfer>` |
-| `confirmations(array $awbs)` | `GET /reports/get-awb-confirmations` | `DTOs\Common\Document` (ZIP) |
+| `confirmations(array $awbs)` | `GET /reports/get-awb-confirmations` | `DTOs\Common\Document` (ZIP); throws `ApiException` when the API has no scans for those AWBs |
 
 `$date` is passed to the API unchanged; FAN Courier uses `YYYY-MM-DD` for the
 AWB reports and `DD-MM-YYYY` in some order examples.

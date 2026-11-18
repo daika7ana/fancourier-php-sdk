@@ -70,13 +70,22 @@ final class ApiResponseMapper
 
         if ($isJson) {
             try {
-                self::assertSuccess(JsonHelper::decode($contents));
+                $payload = JsonHelper::decode($contents);
             } catch (JsonException $e) {
                 throw new UnexpectedStatusException(
                     $response,
                     'Expected binary content, got invalid JSON: ' . $e->getMessage(),
                 );
             }
+
+            self::assertSuccess($payload);
+
+            // A success envelope means the API had no file to return, e.g. "no scans for these AWBs".
+            $message = is_string($payload['data'] ?? null)
+                ? $payload['data']
+                : 'Expected binary content, got a JSON success envelope.';
+
+            throw new ApiException($message, $payload);
         }
 
         return $document;

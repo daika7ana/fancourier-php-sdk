@@ -93,7 +93,7 @@ new Address(
 | `DTOs\Order\OrderTracking` | `orderId`, `orderNumber`, `events[]` |
 | `DTOs\Report\AwbInfo` | AWB number, weight, dimensions, payment, cod, declared value, content, date, service, cost, costCenter, options, refund, currency |
 | `DTOs\Report\ShippingSlipEntry` | `info`, `recipient`, `sender` |
-| `DTOs\Report\AwbTracking` | `awbNumber`, `date`, `paymentDate`, return/redirection/reimbursement/oPOD numbers, `confirmation`, `otd`, `events[]` |
+| `DTOs\Report\AwbTracking` | `awbNumber`, `message`, `serviceId`, `optionCodes[]`, `date`, `paymentDate`, return/redirection/reimbursement/oPOD numbers, `confirmation`, `otd`, `events[]` |
 | `DTOs\Report\AwbEvent` | `id`, `name`, `location`, `date` |
 | `DTOs\Report\BankTransfer` | `awbNumber`, `awbDate`, `amountCollected`, `content`, `transferDate`, return/reimbursement numbers, `transactionDate`, recipient/sender names |
 | `DTOs\Report\Confirmation` | `name`, `date` |
@@ -119,7 +119,7 @@ new Address(
 | --- | --- |
 | `ServiceType` | 24 FAN Courier service strings (`Standard`, `RedCode`, `Cont Colector`, `Express Loco 1H` … `FANbox Cont Colector`) |
 | `AwbOption` | `A`–`F`, `M`, `O`, `P`, `S`, `V`, `W`, `X`, `Y` — semantic case names |
-| `PaymentType` | `Sender` = `expeditor`, `Recipient` = `destinatar`, `Other` = `Altul` |
+| `PaymentType` | `Sender` = `expeditor`, `Recipient` = `destinatar`, `Other` = `Altul` (tariffs also accept `sender`/`recipient`; `Altul` is rejected) |
 | `DeliveryMode` | `Road` = `rutier`, `Air` = `aerian` |
 | `ContentType` | `Document` = `document`, `NonDocument` = `non document` |
 | `PickupPointType` | `Fanbox`, `PayPoint`, `Office` |

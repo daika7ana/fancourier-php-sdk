@@ -67,8 +67,9 @@ final class AwbResourceTest extends TestCase
 
     public function testCreateExternalSendsDeliveryModeAndContentType(): void
     {
+        // /extern-awb answers with a bare list, unlike /intern-awb's {"response": [...]}.
         [$client, $http] = TestClientFactory::create(static fn() => Fixture::json([
-            'response' => [['awbNumber' => '7000044743247', 'packages' => 1]],
+            ['awbNumber' => '7000044743247', 'packages' => 1],
         ]));
 
         $result = $client->awb()->createExternal(new ExternalAwbRequest([

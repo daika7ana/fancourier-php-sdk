@@ -51,8 +51,11 @@ try {
 
 ## Notes
 
-- Binary endpoints (labels, confirmations) only check the status code; a
-  `200` body is returned as `Document` untouched.
+- Binary endpoints (labels, confirmations) go through
+  `ApiResponseMapper::document()`: a PDF/ZIP body becomes a `Document`, a JSON
+  fail envelope becomes `ApiException`, and a JSON *success* body — the API
+  saying there is no file, e.g. no scans for those AWBs — also becomes
+  `ApiException`, carrying the provider's message.
 - `ApiException::payload` holds the decoded envelope, so provider-specific codes
   stay available.
 - The client never retries business failures. Only authentication is retried,

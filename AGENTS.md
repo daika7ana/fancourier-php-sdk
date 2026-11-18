@@ -77,9 +77,11 @@ composer test -- --filter=AwbResourceTest
 - Identifiers (`id`, `awbNumber`, order ids) are `int|string` and keep the wire
   type via `JsonHelper::id()` — `11` stays `int`, `"11"` stays a string. Do not
   add `(int)`/`(string)` casts for ids.
-- `PaymentType` sends `expeditor`/`destinatar`/`Altul` (the PDF schema) while
-  the PDF's own samples show `sender`/`recipient`. Unresolved and deliberate:
-  settle it with one live tariff call, not with a guess.
+- `PaymentType` sends `expeditor`/`destinatar`/`Altul` (the PDF schema). Live
+  check: tariffs accept `expeditor` and `destinatar` as well as `sender` and
+  `recipient` (sender-paid returns 0 because the contract is billed), and
+  report responses echo `sender`. `Altul` is rejected with 422 — do not use it
+  until an AWB create proves otherwise.
 - `docs/` is user-facing API documentation. Behavior changes go in the matching
   file (AUTHENTICATION, CONFIGURATION, DTOS, RESOURCES, …), not just in code.
 - `CHANGELOG.md` is Keep a Changelog, newest version first, one
