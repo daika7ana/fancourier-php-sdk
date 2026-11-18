@@ -12,7 +12,7 @@ A modern, type-safe PHP SDK for the **FAN Courier API**
 
 </div>
 
-Framework-agnostic, PSR-18 native, fully typed request/response DTOs.
+> 🚀 Framework-agnostic, PSR-18 native, fully typed with DTOs, and ready for domestic and export shipments.
 
 ## Table of Contents
 
