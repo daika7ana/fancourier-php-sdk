@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Daika7ana\FanCourier\DTOs\Tariff;
 
-use Daika7ana\FanCourier\Support\JsonHelper;
 use Daika7ana\FanCourier\DTOs\Common\Dimensions;
 use Daika7ana\FanCourier\DTOs\Common\Packages;
 use Daika7ana\FanCourier\Enums\ContentType;
@@ -23,7 +22,6 @@ final readonly class ExternalTariffRequest
         public ?string $recipientCountry = null,
         public ?string $senderLocality = null,
         public ?string $senderCounty = null,
-        public int|string|null $clientId = null,
     ) {}
 
     /**
@@ -45,7 +43,6 @@ final readonly class ExternalTariffRequest
             recipientCountry: self::string($recipient['country'] ?? null),
             senderLocality: self::string($sender['locality'] ?? null),
             senderCounty: self::string($sender['county'] ?? null),
-            clientId: JsonHelper::id($data['clientId'] ?? null),
         );
     }
 
@@ -64,10 +61,6 @@ final readonly class ExternalTariffRequest
         ];
 
         $data = ['info' => $info];
-
-        if ($this->clientId !== null) {
-            $data = ['clientId' => $this->clientId] + $data;
-        }
 
         if ($this->recipientCountry !== null) {
             $data['recipient'] = ['country' => $this->recipientCountry];

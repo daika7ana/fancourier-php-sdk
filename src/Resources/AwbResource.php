@@ -110,9 +110,7 @@ final class AwbResource
     {
         $data = $request instanceof InternalTariffRequest ? $request->toArray() : $request;
 
-        if (!isset($data['clientId'])) {
-            $data['clientId'] = $this->client->clientId();
-        }
+        $data['clientId'] = $this->client->clientId();
 
         $response = $this->client->send($this->client->createRequest(
             'GET',
@@ -134,9 +132,7 @@ final class AwbResource
     {
         $data = $request instanceof ExternalTariffRequest ? $request->toArray() : $request;
 
-        if (!isset($data['clientId'])) {
-            $data['clientId'] = $this->client->clientId();
-        }
+        $data['clientId'] = $this->client->clientId();
 
         $response = $this->client->send($this->client->createRequest(
             'GET',

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Daika7ana\FanCourier\DTOs\Tariff;
 
-use Daika7ana\FanCourier\Support\JsonHelper;
 use Daika7ana\FanCourier\DTOs\Common\Dimensions;
 use Daika7ana\FanCourier\DTOs\Common\Packages;
 use Daika7ana\FanCourier\Enums\AwbOption;
@@ -28,7 +27,6 @@ final readonly class InternalTariffRequest
         public int|float|null $declaredValue = null,
         public ?string $senderLocality = null,
         public ?string $senderCounty = null,
-        public int|string|null $clientId = null,
     ) {}
 
     /**
@@ -53,7 +51,6 @@ final readonly class InternalTariffRequest
             declaredValue: is_numeric($declaredValue) ? $declaredValue + 0 : null,
             senderLocality: self::string($sender['locality'] ?? null),
             senderCounty: self::string($sender['county'] ?? null),
-            clientId: JsonHelper::id($data['clientId'] ?? null),
         );
     }
 
@@ -85,10 +82,6 @@ final readonly class InternalTariffRequest
         }
 
         $data = ['info' => $info];
-
-        if ($this->clientId !== null) {
-            $data = ['clientId' => $this->clientId] + $data;
-        }
 
         if ($this->recipientLocality !== null || $this->recipientCounty !== null) {
             $data['recipient'] = array_filter(
