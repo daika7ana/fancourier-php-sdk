@@ -47,8 +47,8 @@ $options = $client->services()->options(ServiceType::Fanbox);
 | `internalTariff(InternalTariffRequest\|array)` | `GET /reports/awb/internal-tariff` | `DTOs\Tariff\Tariff` |
 | `externalTariff(ExternalTariffRequest\|array)` | `GET /reports/awb/external-tariff` | `DTOs\Tariff\Tariff` |
 
-`createInternal()` and `createExternal()` fill `clientId` when the request does
-not carry one. The result is a list because one request may create several AWBs:
+`createInternal()` and `createExternal()` always fill `clientId` from the client
+config. The result is a list because one request may create several AWBs:
 
 ```php
 $result = $client->awb()->createInternal($request);

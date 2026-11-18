@@ -78,7 +78,7 @@ new Address(
 | DTO | Contents |
 | --- | --- |
 | `DTOs\Awb\AwbResult` | `results: list<AwbCreationResult>`, `rawData`, `first()` |
-| `DTOs\Awb\AwbCreationResult` | `awbNumber`, `tariff`, `vat`, `packages`, `letter`, `routingCode`, `office`, `pickUpPointId`, `visualCode`, `estimatedDeliveryTime`, `errors` |
+| `DTOs\Awb\AwbCreationResult` | `awbNumber` (`null` when the shipment failed), `tariff`, `vat`, `packages`, `letter`, `routingCode`, `office`, `pickUpPointId`, `visualCode`, `estimatedDeliveryTime`, `errors` (`array\|string\|null` — FAN sends per-field errors) |
 | `DTOs\Tariff\Tariff` | `extraKmCost`, `weightCost`, `insuranceCost`, `optionsCost`, `fuelCost`, `costNoVAT`, `vat`, `total` |
 | `DTOs\Service\Service` | `id`, `name`, `description` |
 | `DTOs\Service\ServiceOption` | `id` (option letter), `name` |
