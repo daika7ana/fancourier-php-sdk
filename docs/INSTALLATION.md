@@ -13,8 +13,8 @@ composer require daika7ana/fancourier-php-sdk
 ```
 
 This installs `guzzlehttp/guzzle` (with its own runtime dependencies),
-`guzzlehttp/psr7` and the PSR interfaces. There is no framework dependency in
-`require`.
+`guzzlehttp/psr7`, the PSR interfaces and the dependency-free
+`daika7ana/simple-collections`. There is no framework dependency in `require`.
 
 ## Framework integration
 

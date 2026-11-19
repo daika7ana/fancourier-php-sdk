@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Daika7ana\FanCourier\Tests\Unit\DTOs\Common;
 
 use Daika7ana\FanCourier\DTOs\Common\Address;
-use Daika7ana\FanCourier\DTOs\Common\Collection;
+use Daika7ana\SimpleCollections\Collection;
 use Daika7ana\FanCourier\DTOs\Common\Contact;
 use Daika7ana\FanCourier\DTOs\Common\Dimensions;
 use Daika7ana\FanCourier\DTOs\Common\Document;

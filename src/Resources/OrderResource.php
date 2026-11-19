@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Daika7ana\FanCourier\Resources;
 
 use Daika7ana\FanCourier\Client;
-use Daika7ana\FanCourier\DTOs\Common\Collection;
+use Daika7ana\SimpleCollections\Collection;
 use Daika7ana\FanCourier\DTOs\Common\OperationResult;
 use Daika7ana\FanCourier\DTOs\Common\PaginatedResult;
 use Daika7ana\FanCourier\DTOs\Order\OrderEvent;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Daika7ana\FanCourier\Tests\Unit\Resources;
 
-use Daika7ana\FanCourier\DTOs\Common\Collection;
+use Daika7ana\SimpleCollections\Collection;
 use Daika7ana\FanCourier\DTOs\Location\Country;
 use Daika7ana\FanCourier\DTOs\Location\County;
 use Daika7ana\FanCourier\DTOs\Location\ExternalCounty;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Daika7ana\FanCourier\Resources;
 
 use Daika7ana\FanCourier\Client;
-use Daika7ana\FanCourier\DTOs\Common\Collection;
+use Daika7ana\SimpleCollections\Collection;
 use Daika7ana\FanCourier\DTOs\PickupPoint\PickupPoint;
 use Daika7ana\FanCourier\Enums\PickupPointType;
 use Daika7ana\FanCourier\Exceptions\ApiException;

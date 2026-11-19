@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Daika7ana\FanCourier\DTOs\Common;
 
+use Daika7ana\SimpleCollections\Collection;
+
 /**
  * FAN Courier report endpoints return items together with pagination counters.
  *

@@ -21,5 +21,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Courier order creation, cancellation, reporting, events and tracking
 - AWB shipping slip, event catalogue, AWB tracking, bank transfers and ZIP
   confirmations
-- Typed DTOs, enums, `Collection` and `PaginatedResult` helpers
+- Typed DTOs and enums, a `PaginatedResult` helper, and collections from
+  `daika7ana/simple-collections`
 - PHPUnit suite against a fake PSR-18 client, PHPStan level 8 and Pint

@@ -10,9 +10,9 @@ $client->awb()->createInternal($request);
 `createInternal()`, `createExternal()`, `internalTariff()`, `externalTariff()` and
 `orders()->create()` accept either a typed request DTO or a raw array of the same
 shape; every other method takes plain arguments. Responses are always typed DTOs.
-`Collection` is iterable (`foreach`, `count()`, `first()`, `last()`, `filter()`,
-`map()`, `pluck()`, …); `PaginatedResult` exposes `items`, `perPage`,
-`currentPage` and `total`.
+`Collection` (`Daika7ana\SimpleCollections\Collection`) is iterable (`foreach`,
+`count()`, `first()`, `last()`, `filter()`, `map()`, `pluck()`, …);
+`PaginatedResult` exposes `items`, `perPage`, `currentPage` and `total`.
 
 Endpoint reference: [RO_FANCourier_API_090126.pdf](RO_FANCourier_API_090126.pdf).
 

@@ -109,8 +109,8 @@ new Address(
 - `DTOs\Common\Document` — `stream`, `contentType`, `contentDisposition`,
   `contents()`, `filename()`.
 - `DTOs\Common\OperationResult` — `message`, `rawData` for delete/cancel replies.
-- `DTOs\Common\Collection` — iterable, plus `first/last/get/has/filter/reject/
-  only/except/map/mapWithKeys/pluck/push/prepend/each/toArray`.
+- Collections (not a DTO) are `Daika7ana\SimpleCollections\Collection` from
+  `daika7ana/simple-collections` — iterable, plus `first/last/get/has/filter/reject/only/except/map/mapWithKeys/pluck/push/prepend/each/toArray`.
 - `DTOs\Common\PaginatedResult` — `items`, `perPage`, `currentPage`, `total`.
 
 ## Enums
