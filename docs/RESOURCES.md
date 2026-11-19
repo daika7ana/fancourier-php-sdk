@@ -96,7 +96,9 @@ foreach ($streets->items as $street) {
 
 `$type` is `fanbox`, `paypoint` or `office` (`Enums\PickupPointType`). Each point
 carries its address, coordinates (as strings), opening `schedule` and locker
-`drawer` list.
+`drawer` list. `schedule` keeps the keys the API sends (a positional list of
+`{firstHour, secondHour}` in the spec example), and `paymentMethods` holds the
+accepted instruments (`card`, `cash`).
 
 ## branches()
 

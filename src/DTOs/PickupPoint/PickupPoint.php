@@ -10,8 +10,9 @@ use Daika7ana\FanCourier\DTOs\Common\Address;
 final readonly class PickupPoint
 {
     /**
-     * @param list<PickupSchedule> $schedule
-     * @param list<PickupDrawer> $drawer
+     * @param array<int|string, PickupSchedule> $schedule
+     * @param array<int|string, PickupDrawer> $drawer
+     * @param list<string> $paymentMethods
      */
     public function __construct(
         public int|string $id,
@@ -23,6 +24,7 @@ final readonly class PickupPoint
         public ?string $longitude = null,
         public array $schedule = [],
         public array $drawer = [],
+        public array $paymentMethods = [],
     ) {}
 
     /**
@@ -42,6 +44,7 @@ final readonly class PickupPoint
             longitude: self::string($data['longitude'] ?? null),
             schedule: self::listOf($data['schedule'] ?? null, PickupSchedule::fromArray(...)),
             drawer: self::listOf($data['drawer'] ?? null, PickupDrawer::fromArray(...)),
+            paymentMethods: self::listOfStrings($data['paymentMethods'] ?? null),
         );
     }
 
@@ -50,19 +53,34 @@ final readonly class PickupPoint
      *
      * @param callable(array<string, mixed>): TItem $mapper
      *
-     * @return list<TItem>
+     * @return array<int|string, TItem>
      */
     private static function listOf(mixed $value, callable $mapper): array
     {
         $items = [];
 
-        foreach (is_array($value) ? $value : [] as $item) {
+        // Keys are kept: the spec's schedule is positional, but a keyed one survives.
+        foreach (is_array($value) ? $value : [] as $key => $item) {
             if (is_array($item)) {
-                $items[] = $mapper($item);
+                $items[$key] = $mapper($item);
             }
         }
 
         return $items;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function listOfStrings(mixed $value): array
+    {
+        return array_values(array_map(
+            static fn(mixed $item): string => (string) $item,
+            array_filter(
+                is_array($value) ? $value : [],
+                static fn(mixed $item): bool => is_scalar($item),
+            ),
+        ));
     }
 
     private static function string(mixed $value): ?string

@@ -4,6 +4,15 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-11-19
+
+### Added
+
+- `PickupPoint::$paymentMethods` — the payment instruments the point accepts
+  (`card`, `cash`); the spec's sample response predates the field
+- `PickupPoint::$schedule` now keeps the keys the API sends instead of
+  re-indexing the list
+
 ## [1.0.0] - 2026-11-19
 
 ### Added

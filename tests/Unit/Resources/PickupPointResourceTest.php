@@ -38,6 +38,7 @@ final class PickupPointResourceTest extends TestCase
             'drawer' => [
                 ['type' => 'L', 'number' => 6],
             ],
+            'paymentMethods' => ['card', 'cash'],
         ];
     }
 
@@ -75,6 +76,19 @@ final class PickupPointResourceTest extends TestCase
         self::assertSame('23:59', $point->schedule[0]->secondHour);
         self::assertSame('L', $point->drawer[0]->type);
         self::assertSame(6, $point->drawer[0]->number);
+        self::assertSame(['card', 'cash'], $point->paymentMethods);
+    }
+
+    public function testScheduleKeepsTheApiKeys(): void
+    {
+        $point = PickupPoint::fromArray([
+            'id' => 'FAN0033',
+            'schedule' => [
+                'monday' => ['firstHour' => '08:00', 'secondHour' => '20:00'],
+            ],
+        ]);
+
+        self::assertSame('08:00', $point->schedule['monday']->firstHour);
     }
 
     public function testAllAcceptsStringType(): void

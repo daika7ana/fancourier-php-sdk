@@ -83,7 +83,7 @@ new Address(
 | `DTOs\Service\Service` | `id`, `name`, `description` |
 | `DTOs\Service\ServiceOption` | `id` (option letter), `name` |
 | `DTOs\Location\*` | `County`, `Locality`, `Street` (+`StreetDetails`), `Country`, `ExternalCounty`, `ExternalLocality` |
-| `DTOs\PickupPoint\PickupPoint` | `id`, `name`, `routingLocation`, `description`, `address`, `latitude`, `longitude`, `schedule[]`, `drawer[]` |
+| `DTOs\PickupPoint\PickupPoint` | `id`, `name`, `routingLocation`, `description`, `address`, `latitude`, `longitude`, `schedule[]` (keyed as the API sends it), `drawer[]`, `paymentMethods[]` (`card`, `cash`) |
 | `DTOs\PickupPoint\PickupSchedule` | `firstHour`, `secondHour` |
 | `DTOs\PickupPoint\PickupDrawer` | `type`, `number` |
 | `DTOs\Branch\Branch` | `id`, `name`, bank/contact fields, `address` |
