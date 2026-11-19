@@ -11,7 +11,10 @@ wire type: `11` stays an `int`, `"11"` stays a string. Nothing is coerced.
 
 ### AWB (domestic)
 
-- `DTOs\Awb\InternalAwbRequest(shipments: list<InternalShipment>)`
+- `DTOs\Awb\InternalAwbRequest(shipments: list<InternalShipment>, platformId?: int|string)`
+  — `platformId` is sent at the top level of the `/intern-awb` body, beside
+  `shipments`; Fan Courier requires it for some contracts even though the spec
+  does not document it
 - `DTOs\Awb\InternalShipment(info: ShipmentInfo, recipient: Contact, sender?: Contact)`
 - `DTOs\Awb\ShipmentInfo` — required: `service`, `packages`, `weight`, `payment`,
   `dimensions`; optional: `bank`, `bankAccount`, `cod`, `declaredValue`, `refund`,

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Daika7ana\FanCourier\DTOs\Awb;
 
+use Daika7ana\FanCourier\Support\JsonHelper;
+
 final readonly class InternalAwbRequest
 {
     /**
@@ -11,6 +13,7 @@ final readonly class InternalAwbRequest
      */
     public function __construct(
         public array $shipments,
+        public int|string|null $platformId = null,
     ) {}
 
     /**
@@ -27,7 +30,10 @@ final readonly class InternalAwbRequest
         }
 
 
-        return new self(shipments: $shipments);
+        return new self(
+            shipments: $shipments,
+            platformId: JsonHelper::id($data['platformId'] ?? null),
+        );
     }
 
     /**
@@ -41,6 +47,10 @@ final readonly class InternalAwbRequest
                 $this->shipments,
             ),
         ];
+
+        if ($this->platformId !== null) {
+            $data['platformId'] = $this->platformId;
+        }
 
         return $data;
     }

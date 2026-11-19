@@ -62,6 +62,25 @@ final class InternalAwbRequestTest extends TestCase
         self::assertArrayNotHasKey('clientId', $request->toArray());
     }
 
+    public function testPlatformIdIsTopLevelAndSurvivesRoundTrip(): void
+    {
+        $request = new InternalAwbRequest(shipments: [], platformId: 6);
+
+        $data = $request->toArray();
+
+        self::assertSame(6, $data['platformId']);
+        self::assertArrayNotHasKey('platformId', $data['shipments']);
+
+        $restored = InternalAwbRequest::fromArray($data);
+        self::assertSame(6, $restored->platformId);
+        self::assertSame(6, $restored->toArray()['platformId']);
+    }
+
+    public function testPlatformIdIsOmittedWhenUnset(): void
+    {
+        self::assertArrayNotHasKey('platformId', (new InternalAwbRequest([]))->toArray());
+    }
+
     public function testPassesPhoneAndCountryThrough(): void
     {
         $shipment = new InternalShipment(
