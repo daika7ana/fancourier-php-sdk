@@ -40,6 +40,19 @@ final class GuzzleHttpClientTest extends TestCase
         self::assertSame('pdf-bytes', (string) $response->getBody());
     }
 
+    public function testNonSuccessfulResponseIsReturnedWithoutTimeout(): void
+    {
+        $mock = new MockHandler([
+            new Response(422, ['Content-Type' => 'application/json'], '{"message":"Invalid input"}'),
+        ]);
+
+        $adapter = new GuzzleHttpClient(new GuzzleClient(['handler' => HandlerStack::create($mock)]));
+
+        $response = $adapter->sendRequest(new Request('POST', 'https://api.fancourier.ro/awb'));
+
+        self::assertSame(422, $response->getStatusCode());
+    }
+
     public function testWrapsTransportErrors(): void
     {
         $mock = new MockHandler([
@@ -52,5 +65,53 @@ final class GuzzleHttpClientTest extends TestCase
         $this->expectExceptionMessage('Connection refused');
 
         $adapter->sendRequest(new Request('GET', 'https://api.fancourier.ro/reports/counties'));
+    }
+
+    public function testDefaultConstructorConfiguresTransportDefaults(): void
+    {
+        $adapter = new GuzzleHttpClient();
+        $property = new \ReflectionProperty(GuzzleHttpClient::class, 'guzzleClient');
+        $guzzle = $property->getValue($adapter);
+
+        self::assertSame(30.0, $guzzle->getConfig('timeout'));
+        self::assertSame(10.0, $guzzle->getConfig('connect_timeout'));
+    }
+
+    public function testConstructorArgsApplyToAnInjectedClient(): void
+    {
+        $seen = [];
+
+        $guzzle = new GuzzleClient([
+            'handler' => static function (RequestInterface $request, array $options) use (&$seen) {
+                $seen = $options;
+
+                return Create::promiseFor(new Response(200));
+            },
+        ]);
+
+        (new GuzzleHttpClient($guzzle, timeout: 7.0, connectTimeout: 3.0))
+            ->sendRequest(new Request('GET', 'https://api.fancourier.ro/reports/counties'));
+
+        self::assertSame(7.0, $seen['timeout']);
+        self::assertSame(3.0, $seen['connect_timeout']);
+    }
+
+    public function testPerCallTimeoutOverridesConstructorTimeout(): void
+    {
+        $seen = [];
+
+        $guzzle = new GuzzleClient([
+            'handler' => static function (RequestInterface $request, array $options) use (&$seen) {
+                $seen = $options;
+
+                return Create::promiseFor(new Response(200));
+            },
+        ]);
+
+        (new GuzzleHttpClient($guzzle, timeout: 7.0, connectTimeout: 3.0))
+            ->sendRequest(new Request('GET', 'https://api.fancourier.ro/reports/counties'), 2.0);
+
+        self::assertSame(2.0, $seen['timeout']);
+        self::assertSame(3.0, $seen['connect_timeout']);
     }
 }

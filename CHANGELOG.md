@@ -4,6 +4,20 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-11-20
+
+### Added
+
+- `Client::create()` and `Client::__construct()` accept any PSR-18 `ClientInterface`; a bare client is wrapped in `Psr18HttpClientAdapter`.
+- `Client::send()` accepts an optional per-call timeout, and `ClientConfig::withTimeout()` returns a config with that timeout.
+- `GuzzleHttpClient::DEFAULT_TIMEOUT`/`DEFAULT_CONNECT_TIMEOUT` and `timeout:`/`connectTimeout:` constructor arguments.
+
+### Changed
+
+- **Breaking:** `ClientConfig::timeout` defaults to `null` instead of `30.0`. The bundled transport still applies 30 s request / 10 s connect, now including a 10 s connect cap that was previously absent. A custom `HttpClientInterface` receives `null` unless a timeout is configured.
+- A non-null `ClientConfig::timeout` combined with a bare PSR-18 client throws `InvalidArgumentException`, and a per-call timeout passed to such a client throws too.
+- A PSR-18 client that throws a `ClientExceptionInterface` is now wrapped in `TransportException`.
+
 ## [1.0.2] - 2026-11-19
 
 ### Added

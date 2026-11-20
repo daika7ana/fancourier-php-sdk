@@ -10,7 +10,7 @@
 | `username` | `''` | Login used for automatic re-authentication |
 | `password` | `''` | Login used for automatic re-authentication |
 | `language` | `'ro'` | `language` query parameter for labels, events and tracking |
-| `timeout` | `30.0` | HTTP timeout in seconds for every request |
+| `timeout` | `null` | Request timeout in seconds; `null` uses the transport default |
 
 ```php
 use Daika7ana\FanCourier\Config\ClientConfig;
@@ -50,18 +50,22 @@ Request DTOs do not carry a `clientId`: the client injects its own id, so one
 
 ## Timeouts
 
-`timeout` sets the timeout in seconds, applied to every request the client
-makes, including the login call. The default is 30 seconds, so a stalled
-connection cannot park a PHP worker forever. Pass `null` to fall back to the
-HTTP client's own default (Guzzle: no timeout). `0` disables the cURL timeout.
+`timeout` sets the timeout in seconds for requests the client makes, including
+the login call. The default is `null`: the bundled `GuzzleHttpClient` then
+applies its own 30s request / 10s connect transport defaults. With a bare
+PSR-18 client, `null` means whatever that client's own default is. `0` disables
+the cURL timeout.
 
 ```php
 $client = Client::create(config: new ClientConfig(clientId: 7032158, timeout: 5.0));
 ```
 
-There is no per-call timeout: `Client::send()` takes only the request. To vary
-timeouts, inject an `HttpClientInterface` implementation that handles them
-itself. Keep the value positive — `0` disables the timeout in cURL.
+`Client::send()` is `@internal`: per-call timeouts are a low-level escape hatch,
+and resource methods expose no timeout parameter.
+
+`ClientConfig::timeout` is `null` by default. Precedence: the per-call argument → `ClientConfig::timeout` → the transport's own default (`GuzzleHttpClient` uses 30 s to respond and 10 s to connect unless you pass `timeout:`/`connectTimeout:`; an injected `GuzzleClient` keeps its own configuration). A bare PSR-18 client keeps its own timeout and cannot receive the per-call argument — passing one throws `InvalidArgumentException`; combining a bare client with a non-null `ClientConfig::timeout` also throws.
+
+Keep the value positive — `0` disables the timeout in cURL.
 
 ## Base URL
 

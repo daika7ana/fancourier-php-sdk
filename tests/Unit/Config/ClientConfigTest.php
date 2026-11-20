@@ -51,6 +51,11 @@ final class ClientConfigTest extends TestCase
         self::assertSame(ClientConfig::BASE_URL_PRODUCTION, $config->baseUrl);
         self::assertNull($config->clientId);
         self::assertSame('ro', $config->language);
-        self::assertSame(30.0, $config->timeout);
+        self::assertNull($config->timeout);
+    }
+
+    public function testTimeoutDefaultsToNull(): void
+    {
+        self::assertNull((new ClientConfig())->timeout);
     }
 }

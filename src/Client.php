@@ -14,6 +14,7 @@ use Daika7ana\FanCourier\Exceptions\TransportException;
 use Daika7ana\FanCourier\Exceptions\ValidationException;
 use Daika7ana\FanCourier\Http\GuzzleHttpClient;
 use Daika7ana\FanCourier\Http\HttpClientInterface;
+use Daika7ana\FanCourier\Http\Psr18HttpClientAdapter;
 use Daika7ana\FanCourier\Resources\AwbResource;
 use Daika7ana\FanCourier\Resources\BranchResource;
 use Daika7ana\FanCourier\Resources\LocationResource;
@@ -23,6 +24,7 @@ use Daika7ana\FanCourier\Resources\ReportResource;
 use Daika7ana\FanCourier\Resources\ServiceResource;
 use Daika7ana\FanCourier\Support\JsonHelper;
 use JsonException;
+use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -30,6 +32,8 @@ use Psr\Http\Message\StreamFactoryInterface;
 
 class Client
 {
+    private HttpClientInterface $httpClient;
+
     private ClientConfig $config;
 
     private TokenStoreInterface $tokenStore;
@@ -53,12 +57,19 @@ class Client
     private ?BranchResource $branchResource = null;
 
     public function __construct(
-        private HttpClientInterface $httpClient,
+        ClientInterface $httpClient,
         private RequestFactoryInterface $requestFactory,
         private StreamFactoryInterface $streamFactory,
         ?ClientConfig $config = null,
         ?TokenStoreInterface $tokenStore = null,
     ) {
+        if ($config !== null && $config->timeout !== null && !$httpClient instanceof HttpClientInterface) {
+            throw new \InvalidArgumentException('ClientConfig::timeout cannot be applied to a foreign PSR-18 client; configure the timeout on that client or leave it null.');
+        }
+
+        $this->httpClient = $httpClient instanceof HttpClientInterface
+            ? $httpClient
+            : new Psr18HttpClientAdapter($httpClient);
         $this->config = $config ?? new ClientConfig();
         $this->tokenStore = $tokenStore ?? new InMemoryTokenStore();
         $this->username = $this->config->username;
@@ -149,7 +160,7 @@ class Client
      *
      * @throws TransportException
      */
-    public function send(RequestInterface $request): ResponseInterface
+    public function send(RequestInterface $request, ?float $timeout = null): ResponseInterface
     {
         $token = $this->currentToken();
 
@@ -158,11 +169,11 @@ class Client
         }
 
         $request = $this->applyToken($request, $token);
-        $response = $this->httpClient->sendRequest($request, $this->config->timeout);
+        $response = $this->httpClient->sendRequest($request, $timeout ?? $this->config->timeout);
 
         if ($this->authWasRejected($response) && $this->canReauthenticate()) {
             $request = $this->applyToken($request, $this->reauthenticate());
-            $response = $this->httpClient->sendRequest($request, $this->config->timeout);
+            $response = $this->httpClient->sendRequest($request, $timeout ?? $this->config->timeout);
         }
 
         return $response;
@@ -204,7 +215,7 @@ class Client
     }
 
     public static function create(
-        ?HttpClientInterface $httpClient = null,
+        ?ClientInterface $httpClient = null,
         ?RequestFactoryInterface $requestFactory = null,
         ?StreamFactoryInterface $streamFactory = null,
         ?ClientConfig $config = null,

@@ -1,96 +1,110 @@
-# OpenCode Repository Guide
+# AGENTS.md
 
-PHP 8.3+ library — a typed SDK for the FAN Courier API. No server, no web
-entrypoint, no framework dependency in `require`.
+## Project
+
+Typed PHP 8.3+ SDK for the FAN Courier API (`daika7ana/fancourier-php-sdk`,
+namespace `Daika7ana\FanCourier`). Library only: no server, no web entrypoint, no
+framework in `require`. PSR-18 core, one resource class per API area, readonly
+DTOs, enums. Base URL `https://api.fancourier.ro`
+(`ClientConfig::BASE_URL_PRODUCTION`), with no trailing `/api`, so paths start at
+`/reports/...`, `/awb` or `/order`.
 
 ## Commands
 
 ```bash
-composer ci        # pint -> stan -> test:unit (exactly what CI runs)
-composer pint      # style check only — never fixes
-composer stan      # PHPStan level 8 over src/
-composer test      # every test (currently the same set as test:unit)
-vendor/bin/pint    # the only way to actually fix style
-
-composer test -- tests/Unit/Resources/AwbResourceTest.php
-composer test -- --filter=AwbResourceTest
+composer install
+composer ci         # validate --strict, pint --test, phpstan, phpunit tests/Unit
+composer pint       # style check only, never fixes
+composer stan       # PHPStan level 8 over src/
+composer test       # full PHPUnit suite (unit only today)
+composer test:unit  # tests/Unit only
+vendor/bin/pint     # the only way to auto-fix style
 ```
 
-- `composer.lock` is gitignored: nothing is pinned, CI resolves fresh on every
-  run. `guzzlehttp/psr7` must stay `>=2` because `Client::create()`
-  instantiates `GuzzleHttp\Psr7\HttpFactory`.
-- PHPStan inspects `src/` only, so a green `composer stan` says nothing about
-  `tests/`.
-- CI jobs: `pint` and `stan` on PHP 8.3 only; `test:unit` on 8.3/8.4/8.5,
+- `composer.lock` is gitignored, so CI resolves fresh; keep `guzzlehttp/psr7` at
+  `>=2` because `Client::create()` instantiates `GuzzleHttp\Psr7\HttpFactory`.
+- Quality gates: PHPStan level 8 over `src/` (vendor/tests excluded), Laravel
+  Pint (`per` preset), PHPUnit strict (`.dist`), `composer validate --strict`.
+  CI runs validate, Pint and PHPStan on PHP 8.3 and unit tests on 8.3/8.4/8.5,
   branch `master`.
 
-## Testing
+## Layout
 
-- `tests/Unit/` follows the `src/` layout. Build tests with
-  `Daika7ana\FanCourier\Tests\Support\FakeHttpClient` (handler returns a real
-  `GuzzleHttp\Psr7\Response`), `TestClientFactory::create($handler)` (returns
-  `[Client, FakeHttpClient]`, clientId `7032158`) and `Fixture::ok()/fail()/raw()`.
-  Use `FakeHttpClient` for resource tests; the Guzzle adapter is untested, so
-  don't hand-roll PSR stubs to cover it.
-- No live smoke tests: the API has no documented sandbox. Every wire detail in
-  this SDK comes from the PDF in `docs/`, not from a real response — do not
-  present fixture-checked behavior as verified against FAN Courier.
-
-## Architecture
-
-- `src/Client.php` is the only entrypoint; `Client::create()` wires Guzzle +
-  `HttpFactory` unless factories are injected. Resources are lazy:
-  `services()`, `awb()`, `locations()`, `pickupPoints()`, `orders()`,
-  `reports()`, `branches()`.
-- `ClientConfig::BASE_URL_PRODUCTION` is `https://api.fancourier.ro` with no
-  trailing `/api`, so resource paths start at `/reports/...` or `/awb`.
-- Auth lives in `src/Auth/`. The API issues a 24h Bearer token via
-  `POST /login`. `Client::send()` refreshes an expired token and retries a
-  rejected request once (`401` always, `403` only without a `status:fail`
-  body — business 403s must not be replayed) — all only when username/password
-  are configured. There is no eager login: public endpoints are sent
-  anonymously. The 60s expiry skew in `Token::isExpired()` is deliberate and
-  covered in `TokenTest` / `ClientTest` — read those before touching `send()`.
-- The client's configured id is the only `clientId` source: request DTOs do not
-  accept one, and resources overwrite `clientId` even in raw-array requests.
-  Two contracts means two `Client` instances sharing one `TokenStoreInterface`.
-- `Client::createRequest()` serializes query arrays itself (`buildQuery`):
-  lists become `key[]=`, bools `1`/`0`, nulls are dropped. Tariff resources
-  bypass it with flat `info[service]` keys because the API documents a GET with
-  a nested body.
-- Business failures arrive as `{"status":"fail","message":...}` — usually HTTP
-  200, but 4xx too (deleting an archived order answers 403) — and are converted
-  to `ApiException` by `ApiResponseMapper::decodeJson()`; any other non-2xx is
-  `UnexpectedStatusException`; a Laravel 422 becomes `ValidationException`.
-  `decodeJson()` takes an int or a list of accepted statuses: `POST /order`
-  answers 201.
-  Binary endpoints (labels, confirmations) return `DTOs/Common/Document` via
-  `ApiResponseMapper::document()`, which still detects a JSON fail envelope and
-  rewinds the stream after probing it. Do not send them through `decodeJson()`.
-- `ClientConfig::$timeout` defaults to 30 seconds on purpose: `null` means the
-  HTTP client's own default, which for Guzzle is no timeout at all.
-- `docs/RO_FANCourier_API_090126.pdf` is the authoritative endpoint spec. There
-  is no text extraction in the repo; read the PDF when a path, parameter, or
-  payload shape is in doubt.
+`src/` holds `Client.php`, `Config/`, `Auth/`, `Http/`, `Support/`, `Exceptions/`,
+`Enums/`, `DTOs/<Area>/` and `Resources/`. `tests/Support/` holds the fakes,
+`tests/Unit/` mirrors `src/`; `docs/` holds the user guides and the API PDF.
 
 ## Conventions
 
-- DTOs are `final readonly` with `fromArray()`; request DTOs add `toArray()`
-  that drops null optionals. Enum parameters are typed `Enum|string` and
-  normalized in `toArray()`.
-- Five write methods accept `RequestDto|array`; the array branch is passed
-  through untouched, so use enum backing values there (a backed enum object
-  reaches `json_encode()` and throws a raw `JsonException`).
-- Identifiers (`id`, `awbNumber`, order ids) are `int|string` and keep the wire
-  type via `JsonHelper::id()` — `11` stays `int`, `"11"` stays a string. Do not
-  add `(int)`/`(string)` casts for ids.
-- `PaymentType` sends `expeditor`/`destinatar`/`Altul` (the PDF schema). Live
-  check: tariffs accept `expeditor` and `destinatar` as well as `sender` and
-  `recipient` (sender-paid returns 0 because the contract is billed), and
-  report responses echo `sender`. `Altul` is rejected with 422 — do not use it
-  until an AWB create proves otherwise.
-- `docs/` is user-facing API documentation. Behavior changes go in the matching
-  file (AUTHENTICATION, CONFIGURATION, DTOS, RESOURCES, …), not just in code.
-- `CHANGELOG.md` is Keep a Changelog, newest version first, one
-  `## [x.y.z] - YYYY-MM-DD` section per release; tags are `vX.Y.Z`. Do not add
-  the link-reference block at the bottom.
+- Never import Symfony, Laravel, or another framework into `src/`, `tests/`, or
+  docs, and never make one a runtime dependency; framework integration is out of
+  scope. No new runtime dependencies without an explicit decision. Requests are
+  built through the injected PSR-17 factories and absolute URIs assembled
+  internally; callers never pass a URL.
+- DTOs are `final readonly` with `fromArray()`; request DTOs add `toArray()` that
+  drops null optionals. Enum parameters are typed `Enum|string` and normalized in
+  `toArray()`.
+- `docs/` is user-facing documentation: behavior changes go in the matching file,
+  not just in code. `CHANGELOG.md` is Keep a Changelog, newest first, tags `vX.Y.Z`.
+- Commits and PR titles use Conventional Commits (`<type>(<scope>): <subject>`,
+  lowercase imperative, no trailing period).
+
+## HTTP Transport And Timeouts
+
+- `Client` builds requests with the injected PSR-17 `RequestFactoryInterface` /
+  `StreamFactoryInterface`, consumes PSR-7 `ResponseInterface`, and depends only
+  on PSR-18 `Psr\Http\Client\ClientInterface` — never a concrete client.
+- `src/Http/HttpClientInterface.php` widens PSR-18 with
+  `sendRequest(RequestInterface $request, ?float $timeout = null)`.
+  `src/Http/GuzzleHttpClient.php` is the bundled transport (Guzzle `http_errors`
+  and redirects disabled, so 4xx/5xx reach the mappers);
+  `src/Http/Psr18HttpClientAdapter.php` wraps any other PSR-18 client, rejects a
+  non-null per-call timeout with `InvalidArgumentException`, and rethrows a
+  foreign `ClientExceptionInterface` as `TransportException` (original as
+  `previous`). `TransportException` implements `ClientExceptionInterface`.
+- `Client::__construct()` throws `InvalidArgumentException` when
+  `ClientConfig::timeout` is non-null and the client is not this package's
+  `HttpClientInterface`. `ClientConfig::timeout` is `?float`, default `null`;
+  `connectTimeout` exists only on
+  `GuzzleHttpClient::__construct(?GuzzleClient $guzzleClient = null, ?float $timeout = null, ?float $connectTimeout = null)`,
+  which applies `DEFAULT_TIMEOUT = 30.0` / `DEFAULT_CONNECT_TIMEOUT = 10.0` only
+  when it creates its own Guzzle client. Precedence: per-call
+  `Client::send($request, $t)` → `ClientConfig::timeout` → transport constructor
+  arguments → 30.0/10.0.
+- `guzzlehttp/guzzle` and `guzzlehttp/psr7` are runtime dependencies (default
+  transport and `GuzzleHttp\Psr7\HttpFactory`), so `Client::create()` needs no
+  arguments; no `class_exists` guard, no `suggest` entry.
+
+## API Quirks
+
+- Bearer auth: `POST /login` with the selfAWB credentials as query parameters.
+  `Client::send()` re-authenticates an expired token and retries a rejected
+  request once (401 always; 403 only when the body is not `status:fail`), only
+  when username and password are configured; there is no eager login.
+  `TokenStoreInterface` (default `InMemoryTokenStore`) is the only token source —
+  two contracts means two `Client` instances sharing one store.
+- `ClientConfig` env: `FANCOURIER_BASE_URL`, `FANCOURIER_CLIENT_ID`,
+  `FANCOURIER_USERNAME`, `FANCOURIER_PASSWORD`, `FANCOURIER_LANGUAGE`,
+  `FANCOURIER_TIMEOUT`. `clientId` comes only from config — resources overwrite
+  it even in raw-array requests.
+- Business failures arrive as `{"status":"fail","message":…}` (often HTTP 200) and
+  become `ApiException`; other non-2xx is `UnexpectedStatusException`; 422 is
+  `ValidationException`. Binary endpoints return `DTOs\Common\Document`.
+- `createRequest()`, `withJsonBody()` and `send()` are `@internal`. Query arrays
+  serialize as `key[]=` for lists, `1`/`0` for bools, nulls dropped.
+- `PaymentType` sends `expeditor`/`destinatar`; `Altul` is rejected with 422. The
+  PDF `docs/RO_FANCourier_API_090126.pdf` is the authoritative spec — there is no
+  sandbox, so never present fixture-checked behavior as live-verified.
+- The API returns some ids as `int` and others as `string`; map them through
+  `JsonHelper::id()`, never cast to `int`.
+
+## Tests
+
+- Unit tests never touch the network. `TestClientFactory::create($handler)`
+  returns `[Client, FakeHttpClient]` with `clientId` `7032158`;
+  `Fixture::ok()/fail()/json()/raw()` cover the response envelopes.
+- Assert method, path, query, body and headers on `$httpClient->lastRequest`;
+  every new endpoint needs such a test covering both request and response
+  mapping. There is no live test suite or documented sandbox, so a green test
+  proves the code matches the fixture, not the API. `composer ci` must pass
+  before done.

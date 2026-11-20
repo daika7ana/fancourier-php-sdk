@@ -240,4 +240,38 @@ final class ClientTest extends TestCase
 
         self::assertSame('raw-token', $client->getToken()?->accessToken);
     }
+
+    public function testConfiguredTimeoutReachesTheTransport(): void
+    {
+        $factory = new HttpFactory();
+        $httpClient = new FakeHttpClient(static fn(): \Psr\Http\Message\ResponseInterface => Fixture::ok([]));
+        $client = Client::create(
+            httpClient: $httpClient,
+            requestFactory: $factory,
+            streamFactory: $factory,
+            config: new ClientConfig(clientId: '7032158', timeout: 5.0),
+        );
+
+        $client->send($client->createRequest('GET', '/reports/services'));
+
+        self::assertSame(5.0, $httpClient->lastTimeout);
+    }
+
+    public function testTimeoutWithAForeignPsr18ClientIsRejected(): void
+    {
+        $foreignClient = new class implements \Psr\Http\Client\ClientInterface {
+            public function sendRequest(RequestInterface $request): \Psr\Http\Message\ResponseInterface
+            {
+                return new \GuzzleHttp\Psr7\Response(200);
+            }
+        };
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('ClientConfig::timeout cannot be applied to a foreign PSR-18 client; configure the timeout on that client or leave it null.');
+
+        Client::create(
+            httpClient: $foreignClient,
+            config: new ClientConfig(clientId: '7032158', timeout: 5.0),
+        );
+    }
 }

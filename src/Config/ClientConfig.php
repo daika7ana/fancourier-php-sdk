@@ -14,8 +14,20 @@ final readonly class ClientConfig
         public string $username = '',
         public string $password = '',
         public string $language = 'ro',
-        public ?float $timeout = 30.0,
+        public ?float $timeout = null,
     ) {}
+
+    public function withTimeout(?float $timeout): self
+    {
+        return new self(
+            baseUrl: $this->baseUrl,
+            clientId: $this->clientId,
+            username: $this->username,
+            password: $this->password,
+            language: $this->language,
+            timeout: $timeout,
+        );
+    }
 
     public static function fromEnvironment(): self
     {
@@ -30,7 +42,7 @@ final readonly class ClientConfig
             username: (string) (getenv('FANCOURIER_USERNAME') ?: ''),
             password: (string) (getenv('FANCOURIER_PASSWORD') ?: ''),
             language: is_string($language) && $language !== '' ? $language : 'ro',
-            timeout: is_string($timeout) && is_numeric($timeout) ? (float) $timeout : 30.0,
+            timeout: is_string($timeout) && is_numeric($timeout) ? (float) $timeout : null,
         );
     }
 }

@@ -4,7 +4,7 @@
 composer test                                  # whole suite
 composer test -- tests/Unit/Resources          # one directory
 composer test -- --filter=AwbResourceTest      # one class
-composer ci                                    # pint + phpstan + tests
+composer ci                                    # validate + pint + phpstan + tests
 ```
 
 The suite is fully offline: no credentials, no network. There is no documented

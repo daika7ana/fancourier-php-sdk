@@ -31,7 +31,7 @@ A modern, type-safe PHP SDK for the **FAN Courier API**
 
 - Bearer authentication against `POST /login`, with automatic re-authentication
   of expired tokens
-- PSR-18 HTTP client, Guzzle adapter by default, or bring your own
+- PSR-18 HTTP client with a Guzzle adapter by default; bring your own client if you prefer
 - Fully typed DTOs for AWB creation, tariffs, locations, PUDO points, orders and reports
 - Enums for services, AWB options, payment types, delivery modes and label formats
 - Binary helpers for AWB labels, ZIP confirmations and other non-JSON responses

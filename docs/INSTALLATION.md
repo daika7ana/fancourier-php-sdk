@@ -3,7 +3,7 @@
 ## Requirements
 
 - PHP 8.3 or newer with `ext-json`
-- A PSR-18 HTTP client (Guzzle 7/8 is installed by default)
+- A PSR-18 HTTP client (Guzzle is bundled as the default)
 - A FAN Courier client id and account credentials
 
 ## Composer
@@ -12,14 +12,14 @@
 composer require daika7ana/fancourier-php-sdk
 ```
 
-This installs `guzzlehttp/guzzle` (with its own runtime dependencies),
-`guzzlehttp/psr7`, the PSR interfaces and the dependency-free
-`daika7ana/simple-collections`. There is no framework dependency in `require`.
+This installs the PSR interfaces, `daika7ana/simple-collections`, and
+`guzzlehttp/guzzle` for the bundled transport and PSR-17 factories.
 
 ## Framework integration
 
 `Client::create()` builds a Guzzle client and PSR-17 factories for you. In an
-application that already has them (Laravel, Symfony), inject your own:
+application that already has them
+(Laravel, Symfony), inject your own:
 
 ```php
 use Daika7ana\FanCourier\Client;
@@ -35,10 +35,12 @@ $client = Client::create(
 );
 ```
 
-`Client::create()` accepts anything implementing
-`Daika7ana\FanCourier\Http\HttpClientInterface`, which extends PSR-18
-`ClientInterface` with an optional per-request timeout argument. A bare PSR-18
-client must be wrapped in an adapter; the shipped one is `GuzzleHttpClient`.
+`Client::create()` accepts any PSR-18 client. The SDK's
+`Daika7ana\FanCourier\Http\HttpClientInterface` extends PSR-18 `ClientInterface`
+with an optional per-request timeout argument; a bare PSR-18 client is wrapped
+automatically, and `GuzzleHttpClient` is the default when none is supplied. A
+bare PSR-18 client keeps its own timeout, so a non-null
+`ClientConfig::timeout` alongside one throws `InvalidArgumentException`.
 
 ## Verifying the install
 
