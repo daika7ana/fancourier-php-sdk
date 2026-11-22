@@ -67,6 +67,14 @@ and resource methods expose no timeout parameter.
 
 Keep the value positive — `0` disables the timeout in cURL.
 
+When some calls need a different budget than the rest (for example a sync that
+downloads the full FANBox list), derive a client: `$syncClient =
+$client->withTimeout(30.0);` returns a new client sharing the transport, the
+PSR-17 factories and the token store, carrying the credentials configured when
+it is derived, so no new transport is built and no second login happens; the
+original client keeps its timeout.
+`withTimeout(null)` returns to the transport default.
+
 ## Base URL
 
 Only production is documented by FAN Courier. For a proxy or a local stub:

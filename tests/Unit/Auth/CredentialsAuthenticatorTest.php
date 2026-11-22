@@ -31,14 +31,18 @@ final class CredentialsAuthenticatorTest extends TestCase
 
     public function testFailEnvelopeIsAnAuthenticationException(): void
     {
-        $httpClient = new FakeHttpClient(static fn() => Fixture::fail('Invalid credentials'));
+        $response = Fixture::fail('Invalid credentials');
+        $httpClient = new FakeHttpClient(static fn() => $response);
         $factory = new HttpFactory();
 
-        $this->expectException(AuthenticationException::class);
-        $this->expectExceptionMessage('Invalid credentials');
-
-        (new CredentialsAuthenticator($httpClient, $factory, new ClientConfig()))
-            ->authenticate('test-user', 'wrong-password');
+        try {
+            (new CredentialsAuthenticator($httpClient, $factory, new ClientConfig()))
+                ->authenticate('test-user', 'wrong-password');
+            self::fail('Expected AuthenticationException.');
+        } catch (AuthenticationException $e) {
+            self::assertStringContainsString('Invalid credentials', $e->getMessage());
+            self::assertSame($response, $e->response);
+        }
     }
 
     public function testHttpErrorIsAnAuthenticationException(): void
@@ -50,5 +54,21 @@ final class CredentialsAuthenticatorTest extends TestCase
 
         (new CredentialsAuthenticator($httpClient, $factory, new ClientConfig()))
             ->authenticate('test-user', 'test-pass');
+    }
+
+    public function testMissingTokenExposesResponse(): void
+    {
+        $response = Fixture::ok(['expiresAt' => '2030-06-14 06:00:55']);
+        $httpClient = new FakeHttpClient(static fn() => $response);
+        $factory = new HttpFactory();
+
+        try {
+            (new CredentialsAuthenticator($httpClient, $factory, new ClientConfig()))
+                ->authenticate('test-user', 'test-pass');
+            self::fail('Expected AuthenticationException.');
+        } catch (AuthenticationException $e) {
+            self::assertStringContainsString('token is missing', $e->getMessage());
+            self::assertSame($response, $e->response);
+        }
     }
 }

@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-11-22
+
+### Added
+
+- `Client::withTimeout(?float $timeout)` derives a client sharing the transport, PSR-17 factories and token store, carrying the credentials configured when it is derived, with a different request timeout budget — no second login, no new transport is built.
+- `ApiException`, `ValidationException` and `AuthenticationException` now expose
+  the raw PSR-7 response on `$exception->response` (`?ResponseInterface`) when the
+  failure came from an API response, matching `UnexpectedStatusException`. All
+  four expose the numeric `Retry-After` value in seconds on
+  `$exception->retryAfter` (`null` when absent).
+
 ## [1.1.0] - 2026-11-20
 
 ### Added

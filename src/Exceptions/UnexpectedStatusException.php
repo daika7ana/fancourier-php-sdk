@@ -12,6 +12,7 @@ class UnexpectedStatusException extends FanCourierException
         public readonly ResponseInterface $response,
         string $message = '',
         int $code = 0,
+        public readonly ?int $retryAfter = null,
     ) {
         parent::__construct(
             $message ?: "Unexpected HTTP status {$response->getStatusCode()}",

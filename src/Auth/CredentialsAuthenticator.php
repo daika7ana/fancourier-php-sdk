@@ -8,6 +8,7 @@ use Daika7ana\FanCourier\Config\ClientConfig;
 use Daika7ana\FanCourier\Exceptions\AuthenticationException;
 use Daika7ana\FanCourier\Exceptions\TransportException;
 use Daika7ana\FanCourier\Http\HttpClientInterface;
+use Daika7ana\FanCourier\Support\ApiResponseMapper;
 use Daika7ana\FanCourier\Support\JsonHelper;
 use JsonException;
 use Psr\Http\Message\RequestFactoryInterface;
@@ -43,7 +44,7 @@ class CredentialsAuthenticator
                 'Authentication failed with status %d: %s',
                 $response->getStatusCode(),
                 (string) $response->getBody(),
-            ), 0, $e);
+            ), 0, $e, $response, ApiResponseMapper::retryAfter($response));
         }
 
         $data = is_array($payload['data'] ?? null) ? $payload['data'] : [];
@@ -53,10 +54,10 @@ class CredentialsAuthenticator
                 'Authentication failed with status %d: %s',
                 $response->getStatusCode(),
                 self::failureMessage($payload),
-            ));
+            ), 0, response: $response, retryAfter: ApiResponseMapper::retryAfter($response));
         }
 
-        return Token::fromResponse($data);
+        return Token::fromResponse($data, $response);
     }
 
     /**

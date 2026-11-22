@@ -58,7 +58,12 @@ try {
   saying there is no file, e.g. no scans for those AWBs — also becomes
   `ApiException`, carrying the provider's message.
 - `ApiException::payload` holds the decoded envelope, so provider-specific codes
-  stay available.
+  stay available. `ApiException::response`, `ValidationException::response` and
+  `AuthenticationException::response` hold the raw PSR-7 response when the
+  exception came from one. The numeric `Retry-After` value in seconds is exposed
+  as `$exception->retryAfter` on every exception that carries a response (`null`
+  when absent, non-numeric, or an HTTP date), including
+  `UnexpectedStatusException`.
 - The client never retries business failures. Only authentication is retried,
   once, and only when credentials are configured.
 - Wrong PHP argument types raise a `TypeError`, not a `ValidationException`.

@@ -75,6 +75,46 @@ final class ClientTest extends TestCase
         self::assertSame('fresh-token', $client->getToken()?->accessToken);
     }
 
+    public function testWithTimeoutDerivesAClientSharingTransportAndTokenStore(): void
+    {
+        $loginCalls = 0;
+        $config = new ClientConfig(
+            clientId: '7032158',
+            username: 'test-user',
+            password: 'test-pass',
+            timeout: 10.0,
+        );
+
+        [$client, $httpClient] = TestClientFactory::create(
+            function (RequestInterface $request) use (&$loginCalls) {
+                if (str_contains((string) $request->getUri(), '/login')) {
+                    $loginCalls++;
+                }
+
+                return Fixture::ok(['token' => 'shared-token', 'expiresAt' => '+1 day']);
+            },
+            $config,
+        );
+
+        $client->authenticate('test-user', 'test-pass');
+
+        $derived = $client->withTimeout(30.0);
+
+        self::assertSame(30.0, $derived->getConfig()->timeout);
+        self::assertSame(10.0, $client->getConfig()->timeout);
+        self::assertSame('shared-token', $derived->getToken()?->accessToken);
+
+        // A token stored later through the original must be visible to the
+        // derived client: the store is shared, so no second login happens.
+        $client->setToken('later-token');
+        self::assertSame('later-token', $derived->getToken()?->accessToken);
+
+        $derived->locations()->counties();
+
+        self::assertSame(30.0, $httpClient->lastTimeout);
+        self::assertSame(1, $loginCalls);
+    }
+
     public function testExpiredTokenIsRefreshedBeforeSending(): void
     {
         $calls = [];
@@ -273,5 +313,27 @@ final class ClientTest extends TestCase
             httpClient: $foreignClient,
             config: new ClientConfig(clientId: '7032158', timeout: 5.0),
         );
+    }
+
+    public function testWithTimeoutRejectsForeignPsr18ClientTransport(): void
+    {
+        $foreignClient = new class implements \Psr\Http\Client\ClientInterface {
+            public function sendRequest(RequestInterface $request): \Psr\Http\Message\ResponseInterface
+            {
+                return new \GuzzleHttp\Psr7\Response(200);
+            }
+        };
+
+        $client = Client::create(
+            httpClient: $foreignClient,
+            config: new ClientConfig(clientId: '7032158'),
+        );
+
+        $client->withTimeout(null);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('ClientConfig::timeout cannot be applied to a foreign PSR-18 client; configure the timeout on that client or leave it null.');
+
+        $client->withTimeout(30.0);
     }
 }

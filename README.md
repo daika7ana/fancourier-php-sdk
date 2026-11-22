@@ -169,6 +169,9 @@ Every account-scoped endpoint — AWB, tariffs, orders, service options and most
 
 `ClientConfig::timeout` is `null` by default. Precedence: the per-call argument → `ClientConfig::timeout` → the transport's own default (`GuzzleHttpClient` uses 30 s to respond and 10 s to connect unless you pass `timeout:`/`connectTimeout:`; an injected `GuzzleClient` keeps its own configuration). A bare PSR-18 client keeps its own timeout and cannot receive the per-call argument — passing one throws `InvalidArgumentException`; combining a bare client with a non-null `ClientConfig::timeout` also throws. `Client::send()` is `@internal`, so resource methods expose no timeout parameter.
 
+For a different budget, `$slow = $client->withTimeout(30.0);` returns a new
+client sharing the transport; the original keeps its timeout.
+
 ## Authentication
 
 ### Bearer Tokens

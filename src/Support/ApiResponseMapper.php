@@ -31,10 +31,11 @@ final class ApiResponseMapper
             throw new UnexpectedStatusException(
                 $response,
                 'Response body is not valid JSON: ' . $e->getMessage(),
+                retryAfter: self::retryAfter($response),
             );
         }
 
-        self::assertSuccess($payload);
+        self::assertSuccess($payload, $response);
 
         return $payload;
     }
@@ -78,17 +79,18 @@ final class ApiResponseMapper
                 throw new UnexpectedStatusException(
                     $response,
                     'Expected binary content, got invalid JSON: ' . $e->getMessage(),
+                    retryAfter: self::retryAfter($response),
                 );
             }
 
-            self::assertSuccess($payload);
+            self::assertSuccess($payload, $response);
 
             // A success envelope means the API had no file to return, e.g. "no scans for these AWBs".
             $message = is_string($payload['data'] ?? null)
                 ? $payload['data']
                 : 'Expected binary content, got a JSON success envelope.';
 
-            throw new ApiException($message, $payload);
+            throw new ApiException($message, $payload, response: $response, retryAfter: self::retryAfter($response));
         }
 
         // contents() consumed the stream; callers may copy it themselves.
@@ -104,10 +106,10 @@ final class ApiResponseMapper
      *
      * @throws ApiException
      */
-    public static function assertSuccess(array $payload): void
+    public static function assertSuccess(array $payload, ?ResponseInterface $response = null): void
     {
         if (($payload['status'] ?? null) === 'fail') {
-            throw new ApiException(self::failureMessage($payload), $payload);
+            throw new ApiException(self::failureMessage($payload), $payload, response: $response, retryAfter: $response !== null ? self::retryAfter($response) : null);
         }
     }
 
@@ -128,6 +130,8 @@ final class ApiResponseMapper
                 errors: $payload['errors'],
                 message: $payload['message'],
                 code: 422,
+                response: $response,
+                retryAfter: self::retryAfter($response),
             );
         }
 
@@ -137,11 +141,21 @@ final class ApiResponseMapper
             $failure = self::failureEnvelope($response);
 
             if ($failure !== null) {
-                throw new ApiException(self::failureMessage($failure), $failure);
+                throw new ApiException(self::failureMessage($failure), $failure, response: $response, retryAfter: self::retryAfter($response));
             }
 
-            throw new UnexpectedStatusException($response);
+            throw new UnexpectedStatusException(
+                $response,
+                retryAfter: self::retryAfter($response),
+            );
         }
+    }
+
+    public static function retryAfter(ResponseInterface $response): ?int
+    {
+        $value = trim($response->getHeaderLine('Retry-After'));
+
+        return ctype_digit($value) ? (int) $value : null;
     }
 
     /**
