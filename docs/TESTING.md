@@ -1,14 +1,31 @@
 # Testing
 
 ```bash
-composer test                                  # whole suite
+composer test                                  # whole suite (unit + smoke)
 composer test -- tests/Unit/Resources          # one directory
 composer test -- --filter=AwbResourceTest      # one class
-composer ci                                    # validate + pint + phpstan + tests
+composer test:smoke                            # live smoke suite only
+composer ci                                    # validate + pint + phpstan + unit tests
 ```
 
-The suite is fully offline: no credentials, no network. There is no documented
-sandbox, so the SDK ships unit tests only.
+`tests/Unit` is fully offline: no credentials, no network. `tests/Smoke` calls
+the live API but self-skips unless `FANCOURIER_USERNAME` and
+`FANCOURIER_PASSWORD` are set, so `composer test` and `composer ci` pass offline.
+There is no documented sandbox, so a green unit test proves the code matches the
+fixture, not the API.
+
+## Smoke tests
+
+With `FANCOURIER_USERNAME` and `FANCOURIER_PASSWORD` in the environment — and
+`FANCOURIER_CLIENT_ID` when the account needs a specific contract:
+
+```bash
+composer test:smoke
+```
+
+`tests/Smoke` logs in and fetches the service catalogue. It is the only suite
+that talks to FAN Courier, and it is skipped, not failed, when the credentials
+are absent.
 
 ## Fake HTTP client
 

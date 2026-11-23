@@ -19,7 +19,7 @@ use Daika7ana\FanCourier\Enums\DeliveryMode;
 use Daika7ana\FanCourier\Enums\LabelFormat;
 use Daika7ana\FanCourier\Enums\PaymentType;
 use Daika7ana\FanCourier\Enums\ServiceType;
-use Daika7ana\FanCourier\Exceptions\ApiException;
+use Daika7ana\FanCourier\Exceptions\UnexpectedStatusException;
 use Daika7ana\FanCourier\Tests\Support\Fixture;
 use Daika7ana\FanCourier\Tests\Support\TestClientFactory;
 use PHPUnit\Framework\TestCase;
@@ -115,7 +115,7 @@ final class AwbResourceTest extends TestCase
             static fn(): ResponseInterface => Fixture::fail('Invalid AWB'),
         );
 
-        $this->expectException(ApiException::class);
+        $this->expectException(UnexpectedStatusException::class);
         $this->expectExceptionMessage('Invalid AWB');
 
         $client->awb()->label('7000044743247', pdf: true);
@@ -216,11 +216,11 @@ final class AwbResourceTest extends TestCase
         self::assertSame(4.98, $tariff->vat);
     }
 
-    public function testFailureSurfacesAsApiException(): void
+    public function testFailureSurfacesAsUnexpectedStatusException(): void
     {
         [$client] = TestClientFactory::create(static fn() => Fixture::fail('AWB could not be created'));
 
-        $this->expectException(ApiException::class);
+        $this->expectException(UnexpectedStatusException::class);
         $this->expectExceptionMessage('AWB could not be created');
 
         $client->awb()->createInternal($this->internalRequest());

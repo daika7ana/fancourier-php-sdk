@@ -4,6 +4,28 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-11-23
+
+### Added
+
+- Expanded `tests/Smoke` to cover services, locations, branches, pickup points, order and AWB reporting, AWB tracking and an opt-in AWB create/delete cycle.
+
+### Changed
+
+- **Breaking:** `ApiException` is removed; business failures (`{"status":"fail"}`) now throw `UnexpectedStatusException`, which carries the same decoded payload on `$error` (`FanCourierError`) and `$error->raw`.
+- **Breaking:** `UnexpectedStatusException::$response` is nullable and defaults to `null`.
+- **Breaking:** HTTP 401 now throws `AuthenticationException` instead of `UnexpectedStatusException`.
+- **Breaking:** HTTP 400 now throws `ValidationException` instead of `UnexpectedStatusException`.
+- **Breaking:** `getCode()` returns the HTTP status when the exception carries a response, and the passed code (`0` by default) otherwise; the HTTP exception constructors now derive it from `$response`.
+- `AuthenticationException` and `ValidationException` expose the parsed payload on `$error` (`FanCourierError`).
+- `FanCourierError::isValidationRelated()` also recognises HTTP 400 and carrier validation-style messages.
+
+### Added
+
+- `DTOs\Common\Errors\FanCourierError` for the decoded error envelope, with `isValidationRelated()` and `isAuthenticationRelated()`.
+- `tests/Smoke` live suite, self-skipping without `FANCOURIER_USERNAME`/`FANCOURIER_PASSWORD`, plus the `composer test:smoke` script.
+- `.gitattributes` marking tests, docs and dev files as `export-ignore`.
+
 ## [1.2.0] - 2026-11-22
 
 ### Added

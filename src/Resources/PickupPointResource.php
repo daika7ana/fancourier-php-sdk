@@ -8,7 +8,6 @@ use Daika7ana\FanCourier\Client;
 use Daika7ana\SimpleCollections\Collection;
 use Daika7ana\FanCourier\DTOs\PickupPoint\PickupPoint;
 use Daika7ana\FanCourier\Enums\PickupPointType;
-use Daika7ana\FanCourier\Exceptions\ApiException;
 use Daika7ana\FanCourier\Exceptions\TransportException;
 use Daika7ana\FanCourier\Exceptions\UnexpectedStatusException;
 use Daika7ana\FanCourier\Exceptions\ValidationException;
@@ -21,7 +20,6 @@ final class PickupPointResource
     /**
      * @return Collection<int, PickupPoint>
      *
-     * @throws ApiException
      * @throws UnexpectedStatusException
      * @throws ValidationException
      * @throws TransportException
@@ -38,7 +36,6 @@ final class PickupPointResource
     }
 
     /**
-     * @throws ApiException
      * @throws UnexpectedStatusException
      * @throws ValidationException
      * @throws TransportException

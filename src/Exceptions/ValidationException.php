@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Daika7ana\FanCourier\Exceptions;
 
+use Daika7ana\FanCourier\DTOs\Common\Errors\FanCourierError;
 use Exception;
 use Psr\Http\Message\ResponseInterface;
 
@@ -19,7 +20,8 @@ class ValidationException extends FanCourierException
         ?Exception $previous = null,
         public readonly ?ResponseInterface $response = null,
         public readonly ?int $retryAfter = null,
+        public readonly ?FanCourierError $error = null,
     ) {
-        parent::__construct($message ?: 'Validation failed', $code, $previous);
+        parent::__construct($message ?: 'Validation failed', $response?->getStatusCode() ?? $code, $previous);
     }
 }

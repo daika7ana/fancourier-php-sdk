@@ -13,7 +13,6 @@ use Daika7ana\FanCourier\DTOs\Order\OrderRequest;
 use Daika7ana\FanCourier\DTOs\Order\OrderResult;
 use Daika7ana\FanCourier\DTOs\Order\OrderSummary;
 use Daika7ana\FanCourier\DTOs\Order\OrderTracking;
-use Daika7ana\FanCourier\Exceptions\ApiException;
 use Daika7ana\FanCourier\Exceptions\TransportException;
 use Daika7ana\FanCourier\Exceptions\UnexpectedStatusException;
 use Daika7ana\FanCourier\Exceptions\ValidationException;
@@ -26,7 +25,7 @@ final class OrderResource
     /**
      * @param OrderRequest|array<string, mixed> $request
      *
-     * @throws ApiException|UnexpectedStatusException|ValidationException|TransportException
+     * @throws UnexpectedStatusException|ValidationException|TransportException
      */
     public function create(OrderRequest|array $request): OrderResult
     {
@@ -43,7 +42,7 @@ final class OrderResource
     }
 
     /**
-     * @throws ApiException|UnexpectedStatusException|ValidationException|TransportException
+     * @throws UnexpectedStatusException|ValidationException|TransportException
      */
     public function delete(int|string $id): OperationResult
     {
@@ -58,7 +57,7 @@ final class OrderResource
     /**
      * @return PaginatedResult<OrderSummary>
      *
-     * @throws ApiException|UnexpectedStatusException|ValidationException|TransportException
+     * @throws UnexpectedStatusException|ValidationException|TransportException
      */
     public function report(string $date, ?int $page = null, ?int $perPage = null): PaginatedResult
     {
@@ -78,7 +77,7 @@ final class OrderResource
     /**
      * @return Collection<int, OrderEvent>
      *
-     * @throws ApiException|UnexpectedStatusException|ValidationException|TransportException
+     * @throws UnexpectedStatusException|ValidationException|TransportException
      */
     public function events(?string $language = null): Collection
     {
@@ -100,7 +99,7 @@ final class OrderResource
      * @param list<int|string> $orderIds
      * @return Collection<int, OrderTracking>
      *
-     * @throws ApiException|UnexpectedStatusException|ValidationException|TransportException
+     * @throws UnexpectedStatusException|ValidationException|TransportException
      */
     public function tracking(array $orderIds, ?string $language = null): Collection
     {

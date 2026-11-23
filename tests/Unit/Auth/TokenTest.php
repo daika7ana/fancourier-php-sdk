@@ -8,6 +8,7 @@ use Daika7ana\FanCourier\Auth\Token;
 use Daika7ana\FanCourier\Exceptions\AuthenticationException;
 use DateTimeImmutable;
 use DateTimeZone;
+use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 
 final class TokenTest extends TestCase
@@ -41,6 +42,16 @@ final class TokenTest extends TestCase
         $this->expectException(AuthenticationException::class);
 
         Token::fromResponse([]);
+    }
+
+    public function testMissingTokenWithAResponseCarriesItsStatusAsTheCode(): void
+    {
+        try {
+            Token::fromResponse([], new Response(401));
+            self::fail('Expected AuthenticationException.');
+        } catch (AuthenticationException $e) {
+            self::assertSame(401, $e->getCode());
+        }
     }
 
     public function testRoundTripThroughArray(): void

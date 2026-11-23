@@ -180,7 +180,7 @@ client sharing the transport; the original keeps its timeout.
 $client->authenticate(username: 'your-username', password: 'your-password');
 ```
 
-The API returns a Bearer token valid for 24 hours. The SDK stores it in memory and sends it on every request. When `username` and `password` are configured it also re-authenticates automatically when the token expires (60 second safety margin) or when the API answers 401, and retries a 403 only when it is not a business failure; without credentials a rejected token surfaces as `UnexpectedStatusException`.
+The API returns a Bearer token valid for 24 hours. The SDK stores it in memory and sends it on every request. When `username` and `password` are configured it also re-authenticates automatically when the token expires (60 second safety margin) or when the API answers 401, and retries a 403 once when the body is a `status:success` envelope or is not JSON; a `status:fail` 403 is a business refusal and reaches the caller unchanged. Without credentials a rejected token surfaces as `AuthenticationException`.
 
 ### Token Persistence
 
@@ -216,12 +216,12 @@ See [docs/RESOURCES.md](docs/RESOURCES.md) for endpoint-by-endpoint details.
 ### Error Handling
 
 ```php
-use Daika7ana\FanCourier\Exceptions\ApiException;
+use Daika7ana\FanCourier\Exceptions\UnexpectedStatusException;
 use Daika7ana\FanCourier\Exceptions\ValidationException;
 
 try {
     $client->awb()->createInternal($request);
-} catch (ApiException $e) {
+} catch (UnexpectedStatusException $e) {
     // HTTP 200 {"status":"fail"} — business rejection from FAN Courier
     echo $e->getMessage();
 } catch (ValidationException $e) {
@@ -301,12 +301,14 @@ Available Composer scripts:
 
 - `composer pint` runs Pint in test mode
 - `composer stan` runs PHPStan against `src/`
+- `composer test` runs the full PHPUnit suite (unit plus the self-skipping smoke suite)
 - `composer test:unit` runs the unit test suite
+- `composer test:smoke` runs `tests/Smoke` against the live API (needs credentials)
 - `composer ci` runs the same local checks as CI
 
 ### Test Environment Variables
 
-None. The suite is fully offline — no credentials, no network, no smoke suite, and no documented live sandbox. See [docs/TESTING.md](docs/TESTING.md) for the fake HTTP client and fixtures.
+None for the unit suite, which is fully offline — no credentials, no network. `tests/Smoke` calls the live API but self-skips unless `FANCOURIER_USERNAME` and `FANCOURIER_PASSWORD` are set; there is no documented live sandbox. See [docs/TESTING.md](docs/TESTING.md) for the fake HTTP client and fixtures.
 
 ## Documentation
 
@@ -320,7 +322,7 @@ Complete guides and references:
 | 🔐 [Authentication](docs/AUTHENTICATION.md) | Bearer flow and token management |
 | 🔗 [Resources](docs/RESOURCES.md) | Complete resource reference |
 | 📦 [DTOs](docs/DTOS.md) | Data Transfer Objects and enums |
-| ✅ [Testing](docs/TESTING.md) | Offline test suite and fixtures |
+| ✅ [Testing](docs/TESTING.md) | Unit and smoke suites, fixtures |
 | ❌ [Errors](docs/ERRORS.md) | Exception handling guide |
 | 📚 [All Docs](docs/) | Everything under `docs/` |
 

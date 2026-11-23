@@ -20,8 +20,9 @@ that need it.
 $client->authenticate(username: 'your-username', password: 'your-password');
 ```
 
-`authenticate()` stores the credentials in the client config, so the SDK can log
-in again later without help.
+`authenticate()` stores the credentials on the client, overriding those from
+`ClientConfig` for later re-logins, so the SDK can log in again later without
+help. `getConfig()` still returns the original config.
 
 ## Automatic re-authentication
 
@@ -31,13 +32,15 @@ in again later without help.
    again before sending.
 2. If the API answers `401`, it logs in once and retries the request.
 3. If the API answers `403` with a `status:fail` body — a business refusal such
-   as deleting an archived order — it does not retry. FAN also uses `403` for a
-   dead token, so a `403` that is not a failure envelope is retried once.
+   as deleting an archived order — it does not retry. A `403` whose body is a
+   `status:success` envelope, or is not JSON at all, is retried once after a
+   re-login; any other `403` body reaches the caller.
 
-Every path needs `username` + `password` in the config. Without them the request
-is sent with whatever token is stored — or with none — and a rejected token
-surfaces as `UnexpectedStatusException`. Public endpoints (locations, pickup
-points, branches) need no token, so a wrong password does not break them.
+Every automatic re-login needs `username` + `password`, from the config or
+`authenticate()`. Without them the request is sent with whatever token is stored
+— or with none — and a rejected token surfaces as `AuthenticationException`.
+Public endpoints (locations, pickup points, branches) need no token, so a wrong
+password does not break them.
 
 If the login itself fails, the SDK throws `AuthenticationException`.
 

@@ -96,7 +96,8 @@ class Client
     /**
      * A client sharing this client's transport, PSR-17 factories, token store
      * and credentials, but with a different request timeout budget. The token
-     * is shared through the store, so the derived client never re-authenticates.
+     * is shared through the store, so the derived client starts with the same
+     * token instead of logging in again.
      */
     public function withTimeout(?float $timeout): self
     {

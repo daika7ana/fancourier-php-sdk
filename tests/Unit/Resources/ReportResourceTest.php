@@ -10,7 +10,7 @@ use Daika7ana\FanCourier\DTOs\Report\AwbEvent;
 use Daika7ana\FanCourier\DTOs\Report\AwbTracking;
 use Daika7ana\FanCourier\DTOs\Report\BankTransfer;
 use Daika7ana\FanCourier\DTOs\Report\ShippingSlipEntry;
-use Daika7ana\FanCourier\Exceptions\ApiException;
+use Daika7ana\FanCourier\Exceptions\UnexpectedStatusException;
 use Daika7ana\FanCourier\Tests\Support\Fixture;
 use Daika7ana\FanCourier\Tests\Support\TestClientFactory;
 use PHPUnit\Framework\TestCase;
@@ -161,13 +161,13 @@ final class ReportResourceTest extends TestCase
         self::assertSame('Ion Popescu', $transfer->senderContactPerson);
     }
 
-    public function testConfirmationsWithJsonMessageThrowApiException(): void
+    public function testConfirmationsWithJsonMessageThrowUnexpectedStatusException(): void
     {
         [$client] = TestClientFactory::create(
             static fn() => Fixture::ok('Pentru AWB-urile introduse nu exista scanari in sistemul nostru'),
         );
 
-        $this->expectException(ApiException::class);
+        $this->expectException(UnexpectedStatusException::class);
         $this->expectExceptionMessage('nu exista scanari');
 
         $client->reports()->confirmations(['2078300120037']);
@@ -190,11 +190,11 @@ final class ReportResourceTest extends TestCase
         self::assertStringContainsString('clientId=' . TestClientFactory::clientId(), $query);
     }
 
-    public function testFailedReportThrowsApiException(): void
+    public function testFailedReportThrowsUnexpectedStatusException(): void
     {
         [$client] = TestClientFactory::create(static fn() => Fixture::fail('Invalid date'));
 
-        $this->expectException(ApiException::class);
+        $this->expectException(UnexpectedStatusException::class);
         $this->expectExceptionMessage('Invalid date');
 
         $client->reports()->bankTransfers('not-a-date');

@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Daika7ana\FanCourier\Support;
 
 use Daika7ana\FanCourier\DTOs\Common\Document;
-use Daika7ana\FanCourier\Exceptions\ApiException;
+use Daika7ana\FanCourier\DTOs\Common\Errors\FanCourierError;
+use Daika7ana\FanCourier\Exceptions\AuthenticationException;
 use Daika7ana\FanCourier\Exceptions\UnexpectedStatusException;
 use Daika7ana\FanCourier\Exceptions\ValidationException;
 use JsonException;
@@ -17,7 +18,7 @@ final class ApiResponseMapper
      * @param int|list<int> $expectedStatus
      * @return array<string, mixed>
      *
-     * @throws ApiException
+     * @throws AuthenticationException
      * @throws UnexpectedStatusException
      * @throws ValidationException
      */
@@ -32,6 +33,7 @@ final class ApiResponseMapper
                 $response,
                 'Response body is not valid JSON: ' . $e->getMessage(),
                 retryAfter: self::retryAfter($response),
+                error: self::errorFromResponse($response),
             );
         }
 
@@ -45,7 +47,7 @@ final class ApiResponseMapper
      *
      * @param int|list<int> $expectedStatus
      *
-     * @throws ApiException
+     * @throws AuthenticationException
      * @throws UnexpectedStatusException
      * @throws ValidationException
      */
@@ -58,7 +60,7 @@ final class ApiResponseMapper
      * Binary payload (label, confirmation archive), unless the API answered
      * with a JSON envelope — then the usual fail/validation errors apply.
      *
-     * @throws ApiException
+     * @throws AuthenticationException
      * @throws UnexpectedStatusException
      * @throws ValidationException
      */
@@ -80,6 +82,7 @@ final class ApiResponseMapper
                     $response,
                     'Expected binary content, got invalid JSON: ' . $e->getMessage(),
                     retryAfter: self::retryAfter($response),
+                    error: self::errorFromResponse($response),
                 );
             }
 
@@ -90,7 +93,12 @@ final class ApiResponseMapper
                 ? $payload['data']
                 : 'Expected binary content, got a JSON success envelope.';
 
-            throw new ApiException($message, $payload, response: $response, retryAfter: self::retryAfter($response));
+            throw new UnexpectedStatusException(
+                $response,
+                $message,
+                retryAfter: self::retryAfter($response),
+                error: FanCourierError::fromArray($payload, $response->getStatusCode()),
+            );
         }
 
         // contents() consumed the stream; callers may copy it themselves.
@@ -104,18 +112,24 @@ final class ApiResponseMapper
     /**
      * @param array<string, mixed> $payload
      *
-     * @throws ApiException
+     * @throws UnexpectedStatusException
      */
     public static function assertSuccess(array $payload, ?ResponseInterface $response = null): void
     {
         if (($payload['status'] ?? null) === 'fail') {
-            throw new ApiException(self::failureMessage($payload), $payload, response: $response, retryAfter: $response !== null ? self::retryAfter($response) : null);
+            throw new UnexpectedStatusException(
+                $response,
+                self::failureMessage($payload),
+                retryAfter: $response !== null ? self::retryAfter($response) : null,
+                error: FanCourierError::fromArray($payload, $response?->getStatusCode() ?? 0),
+            );
         }
     }
 
     /**
      * @param int|list<int> $expectedStatus
      *
+     * @throws AuthenticationException
      * @throws UnexpectedStatusException
      * @throws ValidationException
      */
@@ -123,15 +137,26 @@ final class ApiResponseMapper
     {
         $statusCode = $response->getStatusCode();
 
-        if ($statusCode === 422) {
+        if ($statusCode === 401) {
+            $error = self::errorFromResponse($response);
+
+            throw new AuthenticationException(
+                message: $error->message,
+                response: $response,
+                retryAfter: self::retryAfter($response),
+                error: $error,
+            );
+        }
+
+        if ($statusCode === 400 || $statusCode === 422) {
             $payload = self::decodeValidationPayload((string) $response->getBody());
 
             throw new ValidationException(
                 errors: $payload['errors'],
                 message: $payload['message'],
-                code: 422,
                 response: $response,
                 retryAfter: self::retryAfter($response),
+                error: FanCourierError::fromArray($payload['raw'], $statusCode),
             );
         }
 
@@ -141,14 +166,31 @@ final class ApiResponseMapper
             $failure = self::failureEnvelope($response);
 
             if ($failure !== null) {
-                throw new ApiException(self::failureMessage($failure), $failure, response: $response, retryAfter: self::retryAfter($response));
+                throw new UnexpectedStatusException(
+                    $response,
+                    self::failureMessage($failure),
+                    retryAfter: self::retryAfter($response),
+                    error: FanCourierError::fromArray($failure, $statusCode),
+                );
             }
 
             throw new UnexpectedStatusException(
                 $response,
                 retryAfter: self::retryAfter($response),
+                error: self::errorFromResponse($response),
             );
         }
+    }
+
+    public static function errorFromResponse(ResponseInterface $response): FanCourierError
+    {
+        try {
+            $data = JsonHelper::decode((string) $response->getBody());
+        } catch (\Throwable) {
+            $data = [];
+        }
+
+        return FanCourierError::fromArray($data, $response->getStatusCode());
     }
 
     public static function retryAfter(ResponseInterface $response): ?int
@@ -211,7 +253,7 @@ final class ApiResponseMapper
     }
 
     /**
-     * @return array{message: string, errors: array<string, string[]>}
+     * @return array{message: string, errors: array<string, string[]>, raw: array<string, mixed>}
      */
     private static function decodeValidationPayload(string $payload): array
     {
@@ -221,6 +263,7 @@ final class ApiResponseMapper
             return [
                 'message' => 'Validation failed',
                 'errors' => [],
+                'raw' => [],
             ];
         }
 
@@ -241,6 +284,7 @@ final class ApiResponseMapper
         return [
             'message' => $message,
             'errors' => $errors,
+            'raw' => $decoded,
         ];
     }
 }

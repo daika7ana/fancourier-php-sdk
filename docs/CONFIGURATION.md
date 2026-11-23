@@ -40,9 +40,9 @@ $config = new ClientConfig(
 ## Client id
 
 Every endpoint that needs the contract id gets it from the client, not from the
-call site. If the id is missing and no request DTO supplies one, the resource
-throws `Daika7ana\FanCourier\Exceptions\ValidationException` before the request
-is sent.
+call site. If the id is missing, the resource throws
+`Daika7ana\FanCourier\Exceptions\ValidationException` before the request is
+sent.
 
 Request DTOs do not carry a `clientId`: the client injects its own id, so one
 `Client` never sends for two contracts. For multiple contracts, build one

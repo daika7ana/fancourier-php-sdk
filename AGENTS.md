@@ -16,8 +16,9 @@ composer install
 composer ci         # validate --strict, pint --test, phpstan, phpunit tests/Unit
 composer pint       # style check only, never fixes
 composer stan       # PHPStan level 8 over src/
-composer test       # full PHPUnit suite (unit only today)
+composer test       # full PHPUnit suite (tests/Unit + tests/Smoke)
 composer test:unit  # tests/Unit only
+composer test:smoke # tests/Smoke, self-skips without credentials
 vendor/bin/pint     # the only way to auto-fix style
 ```
 
@@ -32,7 +33,8 @@ vendor/bin/pint     # the only way to auto-fix style
 
 `src/` holds `Client.php`, `Config/`, `Auth/`, `Http/`, `Support/`, `Exceptions/`,
 `Enums/`, `DTOs/<Area>/` and `Resources/`. `tests/Support/` holds the fakes,
-`tests/Unit/` mirrors `src/`; `docs/` holds the user guides and the API PDF.
+`tests/Unit/` mirrors `src/`, `tests/Smoke/` is the live suite; `docs/` holds the
+user guides and the API PDF.
 
 ## Conventions
 
@@ -79,17 +81,20 @@ vendor/bin/pint     # the only way to auto-fix style
 
 - Bearer auth: `POST /login` with the selfAWB credentials as query parameters.
   `Client::send()` re-authenticates an expired token and retries a rejected
-  request once (401 always; 403 only when the body is not `status:fail`), only
-  when username and password are configured; there is no eager login.
+  request once (401 always; 403 only when the body is a `status:success`
+  envelope or not JSON), only when username and password are configured; there
+  is no eager login.
   `TokenStoreInterface` (default `InMemoryTokenStore`) is the only token source —
   two contracts means two `Client` instances sharing one store.
 - `ClientConfig` env: `FANCOURIER_BASE_URL`, `FANCOURIER_CLIENT_ID`,
   `FANCOURIER_USERNAME`, `FANCOURIER_PASSWORD`, `FANCOURIER_LANGUAGE`,
   `FANCOURIER_TIMEOUT`. `clientId` comes only from config — resources overwrite
   it even in raw-array requests.
-- Business failures arrive as `{"status":"fail","message":…}` (often HTTP 200) and
-  become `ApiException`; other non-2xx is `UnexpectedStatusException`; 422 is
-  `ValidationException`. Binary endpoints return `DTOs\Common\Document`.
+- Business failures arrive as `{"status":"fail","message":…}` (often HTTP 200)
+  and become `UnexpectedStatusException`. The HTTP status decides the rest:
+  401 is `AuthenticationException`; 400 and 422 are `ValidationException`;
+  403 and any other non-2xx are `UnexpectedStatusException`. Binary endpoints
+  return `DTOs\Common\Document`.
 - `createRequest()`, `withJsonBody()` and `send()` are `@internal`. Query arrays
   serialize as `key[]=` for lists, `1`/`0` for bools, nulls dropped.
 - `PaymentType` sends `expeditor`/`destinatar`; `Altul` is rejected with 422. The
@@ -105,6 +110,13 @@ vendor/bin/pint     # the only way to auto-fix style
   `Fixture::ok()/fail()/json()/raw()` cover the response envelopes.
 - Assert method, path, query, body and headers on `$httpClient->lastRequest`;
   every new endpoint needs such a test covering both request and response
-  mapping. There is no live test suite or documented sandbox, so a green test
-  proves the code matches the fixture, not the API. `composer ci` must pass
-  before done.
+  mapping. `tests/Smoke/` logs in against the live API and self-skips unless
+  `FANCOURIER_USERNAME`/`FANCOURIER_PASSWORD` are set; there is still no
+  documented sandbox, so a green unit test proves the code matches the fixture,
+  not the API. `composer ci` must pass before done.
+- Contract-scoped smoke tests also skip unless `FANCOURIER_CLIENT_ID` is set;
+  `FANCOURIER_SMOKE_AWB` points AWB tracking at a known AWB, otherwise today's
+  shipping slip supplies one or the test skips.
+- Write smoke tests run only with `FANCOURIER_SMOKE_ENABLE_WRITES=true`. Each
+  one creates a record and deletes it in a `try/finally` in the same test; a
+  failed delete fails the test, so the suite leaves no residue.

@@ -12,7 +12,6 @@ use Daika7ana\FanCourier\DTOs\Report\AwbEvent;
 use Daika7ana\FanCourier\DTOs\Report\AwbTracking;
 use Daika7ana\FanCourier\DTOs\Report\BankTransfer;
 use Daika7ana\FanCourier\DTOs\Report\ShippingSlipEntry;
-use Daika7ana\FanCourier\Exceptions\ApiException;
 use Daika7ana\FanCourier\Exceptions\TransportException;
 use Daika7ana\FanCourier\Exceptions\UnexpectedStatusException;
 use Daika7ana\FanCourier\Exceptions\ValidationException;
@@ -25,7 +24,7 @@ final class ReportResource
     /**
      * @return PaginatedResult<ShippingSlipEntry>
      *
-     * @throws ApiException|UnexpectedStatusException|ValidationException|TransportException
+     * @throws UnexpectedStatusException|ValidationException|TransportException
      */
     public function shippingSlip(string $date, ?int $page = null, ?int $perPage = null): PaginatedResult
     {
@@ -45,7 +44,7 @@ final class ReportResource
     /**
      * @return Collection<int, AwbEvent>
      *
-     * @throws ApiException|UnexpectedStatusException|ValidationException|TransportException
+     * @throws UnexpectedStatusException|ValidationException|TransportException
      */
     public function awbEvents(?string $language = null): Collection
     {
@@ -67,7 +66,7 @@ final class ReportResource
      * @param list<int|string> $awbs
      * @return Collection<int, AwbTracking>
      *
-     * @throws ApiException|UnexpectedStatusException|ValidationException|TransportException
+     * @throws UnexpectedStatusException|ValidationException|TransportException
      */
     public function trackAwbs(array $awbs, ?string $language = null): Collection
     {
@@ -90,7 +89,7 @@ final class ReportResource
     /**
      * @return PaginatedResult<BankTransfer>
      *
-     * @throws ApiException|UnexpectedStatusException|ValidationException|TransportException
+     * @throws UnexpectedStatusException|ValidationException|TransportException
      */
     public function bankTransfers(string $date, ?int $page = null, ?int $perPage = null): PaginatedResult
     {
@@ -110,7 +109,7 @@ final class ReportResource
     /**
      * @param list<int|string> $awbs
      *
-     * @throws ApiException|UnexpectedStatusException|ValidationException|TransportException
+     * @throws UnexpectedStatusException|ValidationException|TransportException
      */
     public function confirmations(array $awbs): Document
     {

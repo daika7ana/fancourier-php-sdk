@@ -13,7 +13,6 @@ use Daika7ana\FanCourier\DTOs\Location\ExternalCounty;
 use Daika7ana\FanCourier\DTOs\Location\ExternalLocality;
 use Daika7ana\FanCourier\DTOs\Location\Locality;
 use Daika7ana\FanCourier\DTOs\Location\Street;
-use Daika7ana\FanCourier\Exceptions\ApiException;
 use Daika7ana\FanCourier\Exceptions\TransportException;
 use Daika7ana\FanCourier\Exceptions\UnexpectedStatusException;
 use Daika7ana\FanCourier\Exceptions\ValidationException;
@@ -26,7 +25,6 @@ final class LocationResource
     /**
      * @return Collection<int, County>
      *
-     * @throws ApiException
      * @throws UnexpectedStatusException
      * @throws ValidationException
      * @throws TransportException
@@ -46,7 +44,6 @@ final class LocationResource
     /**
      * @return Collection<int, Locality>
      *
-     * @throws ApiException
      * @throws UnexpectedStatusException
      * @throws ValidationException
      * @throws TransportException
@@ -68,7 +65,6 @@ final class LocationResource
     /**
      * @return PaginatedResult<Street>
      *
-     * @throws ApiException
      * @throws UnexpectedStatusException
      * @throws ValidationException
      * @throws TransportException
@@ -94,7 +90,6 @@ final class LocationResource
     /**
      * @return Collection<int, Country>
      *
-     * @throws ApiException
      * @throws UnexpectedStatusException
      * @throws ValidationException
      * @throws TransportException
@@ -114,7 +109,6 @@ final class LocationResource
     /**
      * @return Collection<int, ExternalCounty>
      *
-     * @throws ApiException
      * @throws UnexpectedStatusException
      * @throws ValidationException
      * @throws TransportException
@@ -136,7 +130,6 @@ final class LocationResource
     /**
      * @return PaginatedResult<ExternalLocality>
      *
-     * @throws ApiException
      * @throws UnexpectedStatusException
      * @throws ValidationException
      * @throws TransportException

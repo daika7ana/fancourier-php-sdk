@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Daika7ana\FanCourier\Auth;
 
 use Daika7ana\FanCourier\Config\ClientConfig;
+use Daika7ana\FanCourier\DTOs\Common\Errors\FanCourierError;
 use Daika7ana\FanCourier\Exceptions\AuthenticationException;
 use Daika7ana\FanCourier\Exceptions\TransportException;
 use Daika7ana\FanCourier\Http\HttpClientInterface;
@@ -40,21 +41,32 @@ class CredentialsAuthenticator
         try {
             $payload = JsonHelper::decode((string) $response->getBody());
         } catch (JsonException $e) {
-            throw new AuthenticationException(sprintf(
-                'Authentication failed with status %d: %s',
-                $response->getStatusCode(),
-                (string) $response->getBody(),
-            ), 0, $e, $response, ApiResponseMapper::retryAfter($response));
+            throw new AuthenticationException(
+                message: sprintf(
+                    'Authentication failed with status %d: %s',
+                    $response->getStatusCode(),
+                    (string) $response->getBody(),
+                ),
+                previous: $e,
+                response: $response,
+                retryAfter: ApiResponseMapper::retryAfter($response),
+                error: ApiResponseMapper::errorFromResponse($response),
+            );
         }
 
         $data = is_array($payload['data'] ?? null) ? $payload['data'] : [];
 
         if ($response->getStatusCode() !== 200 || ($payload['status'] ?? null) === 'fail') {
-            throw new AuthenticationException(sprintf(
-                'Authentication failed with status %d: %s',
-                $response->getStatusCode(),
-                self::failureMessage($payload),
-            ), 0, response: $response, retryAfter: ApiResponseMapper::retryAfter($response));
+            throw new AuthenticationException(
+                message: sprintf(
+                    'Authentication failed with status %d: %s',
+                    $response->getStatusCode(),
+                    self::failureMessage($payload),
+                ),
+                response: $response,
+                retryAfter: ApiResponseMapper::retryAfter($response),
+                error: FanCourierError::fromArray($payload, $response->getStatusCode()),
+            );
         }
 
         return Token::fromResponse($data, $response);

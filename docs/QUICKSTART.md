@@ -13,8 +13,9 @@ $client = Client::create(config: new ClientConfig(
 ));
 ```
 
-Credentials in the config are used for the first login and for automatic
-re-authentication. You can also log in explicitly:
+Credentials in the config drive automatic re-authentication: the SDK logs in
+when a stored token has expired or when the API answers `401`. There is no eager
+login, so public endpoints never trigger one. You can also log in explicitly:
 
 ```php
 $client->authenticate(username: 'your-username', password: 'your-password');

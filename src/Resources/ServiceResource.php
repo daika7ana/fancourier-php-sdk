@@ -9,7 +9,6 @@ use Daika7ana\SimpleCollections\Collection;
 use Daika7ana\FanCourier\DTOs\Service\Service;
 use Daika7ana\FanCourier\DTOs\Service\ServiceOption;
 use Daika7ana\FanCourier\Enums\ServiceType;
-use Daika7ana\FanCourier\Exceptions\ApiException;
 use Daika7ana\FanCourier\Exceptions\TransportException;
 use Daika7ana\FanCourier\Exceptions\UnexpectedStatusException;
 use Daika7ana\FanCourier\Exceptions\ValidationException;
@@ -22,7 +21,7 @@ final class ServiceResource
     /**
      * @return Collection<int, Service>
      *
-     * @throws ApiException|UnexpectedStatusException|ValidationException|TransportException
+     * @throws UnexpectedStatusException|ValidationException|TransportException
      */
     public function all(): Collection
     {
@@ -41,7 +40,7 @@ final class ServiceResource
     /**
      * @return Collection<int, ServiceOption>
      *
-     * @throws ApiException|UnexpectedStatusException|ValidationException|TransportException
+     * @throws UnexpectedStatusException|ValidationException|TransportException
      */
     public function options(ServiceType|string $service): Collection
     {

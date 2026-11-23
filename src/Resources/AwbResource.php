@@ -14,7 +14,6 @@ use Daika7ana\FanCourier\DTOs\Tariff\ExternalTariffRequest;
 use Daika7ana\FanCourier\DTOs\Tariff\InternalTariffRequest;
 use Daika7ana\FanCourier\DTOs\Tariff\Tariff;
 use Daika7ana\FanCourier\Enums\LabelFormat;
-use Daika7ana\FanCourier\Exceptions\ApiException;
 use Daika7ana\FanCourier\Exceptions\TransportException;
 use Daika7ana\FanCourier\Exceptions\UnexpectedStatusException;
 use Daika7ana\FanCourier\Exceptions\ValidationException;
@@ -27,7 +26,7 @@ final class AwbResource
     /**
      * @param InternalAwbRequest|array<string, mixed> $request
      *
-     * @throws ApiException|UnexpectedStatusException|ValidationException|TransportException
+     * @throws UnexpectedStatusException|ValidationException|TransportException
      */
     public function createInternal(InternalAwbRequest|array $request): AwbResult
     {
@@ -46,7 +45,7 @@ final class AwbResource
     /**
      * @param ExternalAwbRequest|array<string, mixed> $request
      *
-     * @throws ApiException|UnexpectedStatusException|ValidationException|TransportException
+     * @throws UnexpectedStatusException|ValidationException|TransportException
      */
     public function createExternal(ExternalAwbRequest|array $request): AwbResult
     {
@@ -63,7 +62,7 @@ final class AwbResource
     }
 
     /**
-     * @throws ApiException|UnexpectedStatusException|ValidationException|TransportException
+     * @throws UnexpectedStatusException|ValidationException|TransportException
      */
     public function delete(int|string $awb): OperationResult
     {
@@ -78,7 +77,7 @@ final class AwbResource
     /**
      * @param int|string|list<int|string> $awbs
      *
-     * @throws ApiException|UnexpectedStatusException|ValidationException|TransportException
+     * @throws UnexpectedStatusException|ValidationException|TransportException
      */
     public function label(
         int|string|array $awbs,
@@ -104,7 +103,7 @@ final class AwbResource
     /**
      * @param InternalTariffRequest|array<string, mixed> $request
      *
-     * @throws ApiException|UnexpectedStatusException|ValidationException|TransportException
+     * @throws UnexpectedStatusException|ValidationException|TransportException
      */
     public function internalTariff(InternalTariffRequest|array $request): Tariff
     {
@@ -126,7 +125,7 @@ final class AwbResource
     /**
      * @param ExternalTariffRequest|array<string, mixed> $request
      *
-     * @throws ApiException|UnexpectedStatusException|ValidationException|TransportException
+     * @throws UnexpectedStatusException|ValidationException|TransportException
      */
     public function externalTariff(ExternalTariffRequest|array $request): Tariff
     {
