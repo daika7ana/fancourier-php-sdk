@@ -138,7 +138,7 @@ class Client
     public function clientId(): int|string
     {
         if ($this->config->clientId === null || $this->config->clientId === '') {
-            throw new ValidationException([], 'No clientId configured. Pass it to ClientConfig.');
+            throw new ValidationException(message: 'No clientId configured. Pass it to ClientConfig.');
         }
 
         return $this->config->clientId;

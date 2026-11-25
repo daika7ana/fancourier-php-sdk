@@ -3,5 +3,8 @@ parameters:
     phpVersion: 80300
     paths:
         - src
+    excludePaths:
+        - vendor
+        - tests
     tmpDir: .phpstan.cache
     treatPhpDocTypesAsCertain: false

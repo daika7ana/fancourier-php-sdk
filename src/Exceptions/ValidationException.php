@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Daika7ana\FanCourier\Exceptions;
 
 use Daika7ana\FanCourier\DTOs\Common\Errors\FanCourierError;
-use Exception;
 use Psr\Http\Message\ResponseInterface;
+use Throwable;
 
 class ValidationException extends FanCourierException
 {
@@ -14,10 +14,10 @@ class ValidationException extends FanCourierException
      * @param array<string, string[]> $errors
      */
     public function __construct(
-        public readonly array $errors,
+        public readonly array $errors = [],
         string $message = '',
         int $code = 0,
-        ?Exception $previous = null,
+        ?Throwable $previous = null,
         public readonly ?ResponseInterface $response = null,
         public readonly ?int $retryAfter = null,
         public readonly ?FanCourierError $error = null,
