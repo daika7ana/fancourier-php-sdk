@@ -18,6 +18,7 @@ use Daika7ana\FanCourier\Exceptions\TransportException;
 use Daika7ana\FanCourier\Exceptions\UnexpectedStatusException;
 use Daika7ana\FanCourier\Exceptions\ValidationException;
 use Daika7ana\FanCourier\Support\ApiResponseMapper;
+use Psr\Http\Message\ResponseInterface;
 
 final class AwbResource
 {
@@ -116,10 +117,8 @@ final class AwbResource
             '/reports/awb/internal-tariff',
             $this->flatten($data),
         ));
-        $payload = ApiResponseMapper::decodeJson($response);
-        $tariff = $payload['data'] ?? [];
 
-        return Tariff::fromArray(is_array($tariff) ? $tariff : []);
+        return $this->tariff($response);
     }
 
     /**
@@ -138,10 +137,26 @@ final class AwbResource
             '/reports/awb/external-tariff',
             $this->flatten($data),
         ));
-        $payload = ApiResponseMapper::decodeJson($response);
-        $tariff = $payload['data'] ?? [];
 
-        return Tariff::fromArray(is_array($tariff) ? $tariff : []);
+        return $this->tariff($response);
+    }
+
+    /**
+     * @throws UnexpectedStatusException|ValidationException|TransportException
+     */
+    private function tariff(ResponseInterface $response): Tariff
+    {
+        $data = ApiResponseMapper::data($response);
+
+        if (is_string($data) && $data !== '') {
+            throw new UnexpectedStatusException($response, $data);
+        }
+
+        if (!is_array($data) || $data === []) {
+            throw new UnexpectedStatusException($response, 'FAN Courier returned no tariff for this request.');
+        }
+
+        return Tariff::fromArray($data);
     }
 
     /**

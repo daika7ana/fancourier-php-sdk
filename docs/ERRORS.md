@@ -52,6 +52,7 @@ Everything else that is not a mapped success:
 | `{"status":"fail","message":"..."}` with HTTP 200 | `UnexpectedStatusException` |
 | 4xx with `{"status":"fail","message":"..."}` (e.g. deleting an archived order → 403) | `UnexpectedStatusException` |
 | Invalid JSON body | `UnexpectedStatusException` |
+| Success body without a `data` object (`internalTariff()`/`externalTariff()`) | `UnexpectedStatusException` — no tariff was returned |
 | Login returns `status: fail` or non-2xx | `AuthenticationException` |
 | Missing `clientId` that the call needs | `ValidationException` |
 | PSR-18 throws | `TransportException` |

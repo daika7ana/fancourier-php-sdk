@@ -58,6 +58,10 @@ $result->results;               // list<AwbCreationResult>
 $result->rawData;               // decoded response
 ```
 
+`internalTariff()` and `externalTariff()` return one `Tariff`; a success body
+whose `data` is missing, not an object, or empty throws
+`UnexpectedStatusException` instead of an empty `Tariff`.
+
 Labels are binary; `Document` gives you the bytes and download metadata:
 
 ```php

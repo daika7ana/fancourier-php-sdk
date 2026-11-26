@@ -22,6 +22,7 @@ use Daika7ana\FanCourier\Enums\ServiceType;
 use Daika7ana\FanCourier\Exceptions\UnexpectedStatusException;
 use Daika7ana\FanCourier\Tests\Support\Fixture;
 use Daika7ana\FanCourier\Tests\Support\TestClientFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 
@@ -214,6 +215,34 @@ final class AwbResourceTest extends TestCase
         self::assertSame(31.17, $tariff->total);
         self::assertSame(24.5, $tariff->weightCost);
         self::assertSame(4.98, $tariff->vat);
+    }
+
+    /**
+     * @return iterable<string, array{string, ResponseInterface, string}>
+     */
+    public static function malformedTariff(): iterable
+    {
+        $noTariff = 'FAN Courier returned no tariff for this request.';
+
+        yield 'internal, missing data' => ['internalTariff', Fixture::json(['status' => 'success']), $noTariff];
+        yield 'internal, empty data' => ['internalTariff', Fixture::ok([]), $noTariff];
+        yield 'internal, non-array data' => ['internalTariff', Fixture::ok(42), $noTariff];
+        yield 'internal, string data' => ['internalTariff', Fixture::ok('no tariff'), 'no tariff'];
+        yield 'external, missing data' => ['externalTariff', Fixture::json(['status' => 'success']), $noTariff];
+        yield 'external, empty data' => ['externalTariff', Fixture::ok([]), $noTariff];
+        yield 'external, non-array data' => ['externalTariff', Fixture::ok(42), $noTariff];
+        yield 'external, string data' => ['externalTariff', Fixture::ok('no tariff'), 'no tariff'];
+    }
+
+    #[DataProvider('malformedTariff')]
+    public function testTariffRejectsMissingOrEmptyData(string $method, ResponseInterface $response, string $message): void
+    {
+        [$client] = TestClientFactory::create(static fn() => $response);
+
+        $this->expectException(UnexpectedStatusException::class);
+        $this->expectExceptionMessage($message);
+
+        $client->awb()->{$method}([]);
     }
 
     public function testFailureSurfacesAsUnexpectedStatusException(): void
